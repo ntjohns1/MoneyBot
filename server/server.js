@@ -18,20 +18,19 @@ import {
 } from "./routes/index.js";
 const app = express();
 
-// Middleware
 const corsOptions = {
-  origin: 'http://localhost:3000',  // Allow requests from React app
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],  // Allow all standard methods
-  credentials: true,  // Allow credentials (like cookies or auth headers)
+  origin: 'http://localhost:3000',
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  credentials: true,
 };
 app.use(cors(corsOptions)); 
 app.use(authMiddleware);
 app.use(express.json());
 
-// Register Alpaca API routes
+// Alpaca API routes
 app.use("/api/stocks", stocks);
 app.use("/api/crypto", crypto);
-app.use("/api/options", options);
+app.use("/api/options", options); 
 app.use("/api/accounts", accounts);
 app.use("/api/assets", assets);
 app.use("/api/datetime", datetime);

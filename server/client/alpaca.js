@@ -6,6 +6,7 @@ const API_SECRET = process.env.ALPACA_API_SECRET;
 const alpaca = new Alpaca({
   keyId: API_KEY,
   secretKey: API_SECRET,
+  paper: true,
 });
 // let options = {
 //   start: "2022-09-01",
