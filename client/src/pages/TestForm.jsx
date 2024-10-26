@@ -8,7 +8,6 @@ import { useOktaAuth } from "@okta/okta-react";
 const TestForm = () => {
     const { authState, oktaAuth } = useOktaAuth();
     const [bars, setBars] = useState(null);
-    const [assets, setAssets] = useState([]);
     const [formState, setFormState] = useState({ symbol: '', start: '2024-10-17', end: '2024-10-18', timeframe: 1, timeframeUnit: 'MIN' });
     const [error, setError] = useState(null);
 
@@ -18,16 +17,6 @@ const TestForm = () => {
             ...formState,
             [name]: value,
         });
-    };
-
-    const fetchAssets = async () => {
-        if (authState && authState.isAuthenticated) {
-            const accessToken = oktaAuth.getAccessToken();
-            setAccessToken(accessToken);
-            const res = await getAssets();
-            console.log(res);
-            
-        }
     };
 
     const handleSubmit = async (event) => {
@@ -124,10 +113,10 @@ const TestForm = () => {
                     </Grid>
 
                     {/* Bars Data */}
-                    {assets && (
+                    {bars && (
                         <Grid xs={12}>
                             <Typography variant="h6">Bars Data:</Typography>
-                            <pre>{JSON.stringify(assets, null, 2)}</pre>
+                            <pre>{JSON.stringify(bars, null, 2)}</pre>
                         </Grid>
                     )}
 
