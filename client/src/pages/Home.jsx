@@ -14,6 +14,7 @@ import { useOktaAuth } from '@okta/okta-react';
 import React, { useState, useEffect } from 'react';
 import { Container } from "@mui/material";
 import TestForm from './TestForm';
+import SearchInput from '../components/SearchInput';
 
 const Home = () => {
   const { authState, oktaAuth } = useOktaAuth();
@@ -44,7 +45,8 @@ const Home = () => {
 
   return (
     <Container>
-      <TestForm/>
+      {/* <TestForm/> */}
+      <SearchInput />
     </Container>
   );
 };

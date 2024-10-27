@@ -1,4 +1,3 @@
-// auth.js
 import OktaJwtVerifierModule from '@okta/jwt-verifier';
 import { resourceServer } from "../config/index.js";
 
