@@ -18,6 +18,8 @@ export const getBarsForSymbol = async (
         limit, // Optional limit parameter, default to 1000
       },
     });
+    console.log(response);
+    
     return response.data;
   } catch (error) {
     console.error("Error fetching stock bars:", error);

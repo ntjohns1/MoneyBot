@@ -1,10 +1,15 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import { getBarsForSymbol } from "../service/alpaca";
+import dayjs from "dayjs";
+
+const today = new Date();
+const yesterday = new Date(today);
+yesterday.setDate(yesterday.getDate() - 1);
 
 export const fetchStockBars = createAsyncThunk(
   "stocks/fetchStockBars",
-  async ({ symbol }) => {
-    const res = await getBarsForSymbol(symbol);
+  async ({ symbol, start, end, timeframe, timeframeUnit }) => {
+    const res = await getBarsForSymbol(symbol, start, end, timeframe, timeframeUnit);
     return res;
   }
 );
@@ -13,26 +18,21 @@ const stocksSlice = createSlice({
   name: "stocks",
   initialState: {
     bars: [],
-    symbol: null,
-    barStart: null,
-    barEnd: null,
-    inputValue: '',
+    formState: {
+      symbol: "",
+      start: yesterday.toJSON().slice(0, 10),
+      end: today.toJSON().slice(0, 10),
+      timeframe: 1,
+      timeframeUnit: "MIN",
+    },
     open: false,
     loading: false,
     error: null,
   },
   reducers: {
-    setSymbol(state, action) {
-      state.symbol = action.payload;
-    },
-    setBarStart(state, action) {
-      state.barStart = action.payload;
-    },
-    setBarEnd(state, action) {
-      state.barEnd = action.payload;
-    },
-    setInputValue(state, action) {
-      state.inputValue = action.payload;
+    setFormField(state, action) {
+      const { field, value } = action.payload;
+      state.formState[field] = value;
     },
     setOpen(state, action) {
       state.open = action.payload;
@@ -48,7 +48,8 @@ const stocksSlice = createSlice({
       })
       .addCase(fetchStockBars.fulfilled, (state, action) => {
         state.loading = false;
-        state.bars = action.payload;
+        console.log("Payload received in reducer:", action.payload); 
+        state.bars = [...action.payload];
       })
       .addCase(fetchStockBars.rejected, (state, action) => {
         state.loading = false;
@@ -57,12 +58,5 @@ const stocksSlice = createSlice({
   },
 });
 
-export const {
-  setSymbol,
-  setBarStart,
-  setBarEnd,
-  setInputValue,
-  setOpen,
-  setLoading,
-} = stocksSlice.actions;
+export const { setFormField, setOpen, setLoading } = stocksSlice.actions;
 export default stocksSlice.reducer;
