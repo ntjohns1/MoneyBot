@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { Box, OutlinedInput, FormControl, Select, InputLabel, MenuItem, Button, Typography } from "@mui/material";
 import Grid from '@mui/material/Grid2';
-import { getBarsForSymbol } from "../service/alpaca.js";
+import { getAssets, getBarsForSymbol } from "../service/alpaca.js";
 import { setAccessToken } from "../service/axiosConfig.js";
 import { useOktaAuth } from "@okta/okta-react";
 
@@ -50,7 +50,7 @@ const TestForm = () => {
             display: 'flex',
             flexDirection: 'column',
             alignItems: 'center',
-            pt: { xs: 1, sm:  6},
+            pt: { xs: 1, sm: 6 },
             pb: { xs: 1, sm: 12 },
         }}>
             <form onSubmit={handleSubmit}>
