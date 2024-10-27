@@ -1,39 +1,52 @@
 import React, { useEffect, useState } from "react";
+import { useSelector, useDispatch } from "react-redux";
+import { useOktaAuth } from "@okta/okta-react";
+import { setAccessToken } from "../service/axiosConfig";
 import { Autocomplete, CircularProgress, TextField, Typography } from "@mui/material";
 import Grid from "@mui/material/Grid2";
-import { setAccessToken } from "../service/axiosConfig";
-import { useOktaAuth } from "@okta/okta-react";
-import { getAssets } from "../service/alpaca";
 import { DatePicker } from '@mui/x-date-pickers';
-import dayjss from "dayjs";
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
+import dayjs from "dayjs";
+import { fetchAllAssets } from "./AssetsSlice";
+import { setOpen, setInputValue, setBarStart, setBarEnd } from "./StocksSlice";
 
 const SearchInput = () => {
     const { authState, oktaAuth } = useOktaAuth();
-    const [assets, setAssets] = useState([]);
-    const [open, setOpen] = useState(false);
-    const [loading, setLoading] = useState(false);
-    const [inputValue, setInputValue] = useState('');
+    const assets = useSelector((state) => state.assets.allAssets);
+    const loading = useSelector((state) => state.assets.loading);
+    const start = useSelector((state) => state.stocks.barStart);
+    const end = useSelector((state) => state.stocks.barEnd);
+    const inputValue = useSelector((state) => state.stocks.inputValue);
+    const open = useSelector((state) => state.stocks.open);
+    const dispatch = useDispatch();
+
+    useEffect(() => {
+        if (authState.isAuthenticated) {
+            const accessToken = oktaAuth.getAccessToken();
+            setAccessToken(accessToken);
+            dispatch(fetchAllAssets());
+        }
+    }, [authState, dispatch]);
 
     const handleOpen = () => {
-        if (authState && authState.isAuthenticated) {
-            setOpen(true);
-            (async () => {
-                setLoading(true);
-                const accessToken = oktaAuth.getAccessToken();
-                setAccessToken(accessToken);
-                const data = await getAssets();
-                setLoading(false);
-
-                setAssets(data);
-            })();
-        }
+        dispatch(setOpen(true));
     };
 
     const handleClose = () => {
-        setOpen(false);
+        dispatch(setOpen(false));
     };
+
+    const handleSetStart = (start) => {
+        dispatch(setBarStart(start));
+    }
+    const handleSetEnd = (end) => {
+        dispatch(setBarEnd(end));
+    }
+
+    const handleSetInputValue = (value) => {
+        dispatch(setInputValue(value));
+    }
 
     return (
         <Grid container spacing={2}>
@@ -41,13 +54,13 @@ const SearchInput = () => {
                 <LocalizationProvider dateAdapter={AdapterDayjs}>
                     <DatePicker
                         label="Start"
-                    // value={value}
-                    // onChange={(newValue) => setValue(newValue)}
+                        value={start}
+                        onChange={(newValue) => handleSetStart(newValue)}
                     />
                     <DatePicker
                         label="End"
-                    // value={value}
-                    // onChange={(newValue) => setValue(newValue)}
+                        value={end}
+                        onChange={(newValue) => handleSetEnd(newValue)}
                     />
                 </LocalizationProvider>
                 <Autocomplete
@@ -60,7 +73,7 @@ const SearchInput = () => {
                     options={assets}
                     loading={loading}
                     inputValue={inputValue}
-                    onInputChange={(event, newInputValue) => setInputValue(newInputValue)}
+                    onInputChange={(event, newInputValue) => handleSetInputValue(newInputValue)}
                     renderInput={(params) => (
                         <TextField
                             {...params}
