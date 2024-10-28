@@ -9,7 +9,7 @@ import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import dayjs from "dayjs";
 import { fetchAllAssets } from "./AssetsSlice";
-import { fetchStockBars, setOpen, setFormField } from "./StocksSlice";
+import { fetchStockBars, setFormField } from "./StocksSlice";
 
 const SearchInput = () => {
     const { authState, oktaAuth } = useOktaAuth();
@@ -129,14 +129,6 @@ const SearchInput = () => {
                             Submit
                         </Button>
                     </Grid>
-
-                    {/* Display bars data if available */}
-                    {bars && (
-                        <Grid xs={12}>
-                            <Typography variant="h6">Bars Data:</Typography>
-                            <pre>{JSON.stringify(bars, null, 2)}</pre>
-                        </Grid>
-                    )}
                 </Grid>
             </Grid>
         </form>

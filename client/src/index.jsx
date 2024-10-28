@@ -9,7 +9,7 @@ import App from './App';
 import './index.css';
 import theme from './theme';
 import registerServiceWorker from './registerServiceWorker';
-import { store } from "../app/store";
+import { store } from "./app/store";
 import { Provider } from "react-redux";
 
 const container = document.getElementById('root');

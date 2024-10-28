@@ -1,7 +1,7 @@
 import { createSlice } from "@reduxjs/toolkit";
 
-const lineChartSlice = createSlice({
-  name: "lineChart",
+const stockHistoryChartSlice = createSlice({
+  name: "stockHistoryChart",
   initialState: {
     loading: false,
     error: null,
@@ -12,3 +12,8 @@ const lineChartSlice = createSlice({
     },
   },
 });
+
+
+
+export const { setLoading } = stockHistoryChartSlice.actions;
+export default stockHistoryChartSlice.reducer;
