@@ -2,15 +2,33 @@ import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import { getBarsForSymbol } from "../service/alpaca";
 import dayjs from "dayjs";
 
-const today = new Date();
-const yesterday = new Date(today);
-yesterday.setDate(yesterday.getDate() - 1);
+export const lastValidDate = () => {
+  const today = dayjs();
+  const dayOfWeek = today.day();
+
+  if (dayOfWeek >= 2 && dayOfWeek <= 6) {
+    // If today is Tuesday to Saturday, return yesterday
+    return today.subtract(1, "day");
+  } else {
+    // If today is Sunday or Monday, get last Friday
+    const daysToFriday = dayOfWeek === 0 ? 2 : 3; // 0 is Sunday, 1 is Monday
+    return today.subtract(daysToFriday, "day");
+  }
+};
 
 export const fetchStockBars = createAsyncThunk(
   "stocks/fetchStockBars",
   async ({ symbol, start, end, timeframe, timeframeUnit }) => {
-    const res = await getBarsForSymbol(symbol, start, end, timeframe, timeframeUnit);
-    return res;
+    if (symbol && symbol != "") {
+      const res = await getBarsForSymbol(
+        symbol,
+        start,
+        end,
+        timeframe,
+        timeframeUnit
+      );
+      return res;
+    }
   }
 );
 
@@ -20,8 +38,8 @@ const stocksSlice = createSlice({
     bars: [],
     formState: {
       symbol: "",
-      start: yesterday.toJSON().slice(0, 10),
-      end: today.toJSON().slice(0, 10),
+      start: lastValidDate().format("YYYY-MM-DD"),
+      end: lastValidDate().format("YYYY-MM-DD"),
       timeframe: 1,
       timeframeUnit: "MIN",
     },
@@ -40,6 +58,16 @@ const stocksSlice = createSlice({
     setLoading(state, action) {
       state.loading = action.payload;
     },
+    setTimeframe(state, action) {
+      const { start, end, timeframe, timeframeUnit } = action.payload;
+      state.formState = {
+        ...state.formState,
+        start,
+        end,
+        timeframe,
+        timeframeUnit,
+      };
+    },
   },
   extraReducers: (builder) => {
     builder
@@ -48,8 +76,7 @@ const stocksSlice = createSlice({
       })
       .addCase(fetchStockBars.fulfilled, (state, action) => {
         state.loading = false;
-        console.log("Payload received in reducer:", action.payload); 
-        state.bars = [...action.payload];
+        state.bars = action.payload;
       })
       .addCase(fetchStockBars.rejected, (state, action) => {
         state.loading = false;
@@ -58,5 +85,6 @@ const stocksSlice = createSlice({
   },
 });
 
-export const { setFormField, setOpen, setLoading } = stocksSlice.actions;
+export const { setFormField, setOpen, setLoading, setTimeframe } =
+  stocksSlice.actions;
 export default stocksSlice.reducer;

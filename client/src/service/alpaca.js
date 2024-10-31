@@ -11,15 +11,14 @@ export const getBarsForSymbol = async (
   try {
     const response = await api.get(`/stocks/${symbol}`, {
       params: {
-        start, // Start date as a query parameter
-        end, // End date as a query parameter
-        timeframe, // Timeframe (e.g., '1Min', '5Min')
+        start,
+        end,
+        timeframe,
         timeframeUnit,
-        limit, // Optional limit parameter, default to 1000
+        limit,
       },
     });
-    console.log(response);
-    
+
     return response.data;
   } catch (error) {
     console.error("Error fetching stock bars:", error);
@@ -29,8 +28,8 @@ export const getBarsForSymbol = async (
 
 export const getAsset = async (symbol) => {
   try {
-    const response = await api.get(`/assets/${symbol}`)
-    return response.data
+    const response = await api.get(`/assets/${symbol}`);
+    return response.data;
   } catch (error) {
     console.error("Error fetching assets:", error);
     throw error;
@@ -39,8 +38,8 @@ export const getAsset = async (symbol) => {
 
 export const getAssets = async () => {
   try {
-    const response = await api.get(`/assets`)
-    return response.data
+    const response = await api.get(`/assets`);
+    return response.data;
   } catch (error) {
     console.error("Error fetching assets:", error);
     throw error;
