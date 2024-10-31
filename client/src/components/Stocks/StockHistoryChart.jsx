@@ -1,36 +1,41 @@
-import React from "react";
-import { useSelector } from "react-redux";
+import React, { useEffect } from "react";
+import { useSelector, useDispatch } from "react-redux";
 import Box from "@mui/material/Box";
-import { LineChart, ChartContainer } from "@mui/x-charts";
+import { LineChart } from "@mui/x-charts";
 import dayjs from "dayjs";
+import { fetchStockBars } from "../StocksSlice";
+
 
 const StockHistoryChart = () => {
-    const bars = useSelector((state) => state.stocks.bars);
+    const dispatch = useDispatch();
+    const { bars, formState } = useSelector((state) => state.stocks);
 
-    if (!bars || bars.length === 0) {
-        console.warn("No data available for chart.");
-        return <Box>No data available</Box>;
-    }
+    useEffect(() => {
+        const { symbol, start, end, timeframe, timeframeUnit } = formState;
+        dispatch(fetchStockBars({ symbol, start, end, timeframe, timeframeUnit }));
+    }, [dispatch, formState]);
 
-    // Convert timestamps to JavaScript Date objects
-    const timestamps = bars
-        .map((bar) => {
-            const date = dayjs(bar.Timestamp).toDate();
-            return date instanceof Date && !isNaN(date) ? date : null;
-        })
-        .filter((timestamp) => timestamp !== null);
+    const getDateFormatter = () => {
+        switch (formState.timeframeUnit) {
+            case "MIN":
+                return (date) => dayjs(date).format("HH:mm");
+            case "DAY":
+                return (date) => dayjs(date).format("MM-DD");
+            case "WEEK":
+                return (date) => dayjs(date).format("HH:mm");
+            case "MONTH":
+                return (date) => dayjs(date).format("MMM YYYY");
+            default:
+                return (date) => dayjs(date).format("HH:mm");
+        }
+    };
 
-    const closePrices = bars
-        .map((bar) => (typeof bar.ClosePrice === "number" ? bar.ClosePrice : null))
-        .filter((price) => price !== null);
+    if (!bars || bars.length === 0) return <Box>No data available</Box>;
 
-    if (timestamps.length !== closePrices.length) {
-        console.error("Mismatch between timestamps and prices data length.");
-        return <Box>Data error: mismatched timestamps and prices</Box>;
-    }
+    const timestamps = bars.map((bar) => dayjs(bar.Timestamp).toDate());
+    const closePrices = bars.map((bar) => bar.ClosePrice);
+    const yAxisMin = Math.min(...closePrices) * 0.99;
 
-    const minClosePrice = Math.min(...closePrices);
-    const yAxisMin = minClosePrice * 0.99;
 
     return (
         <Box>
@@ -39,7 +44,7 @@ const StockHistoryChart = () => {
                     {
                         data: timestamps,
                         scaleType: 'time',
-                        valueFormatter: (date) => dayjs(date).format('HH:mm'),
+                        valueFormatter: getDateFormatter(),
                         label: 'Time',
                     },
                 ]}
@@ -53,7 +58,8 @@ const StockHistoryChart = () => {
                     {
                         data: closePrices,
                         label: "Close Price",
-                        color: "#1976d2",
+                        curve: "linear",
+                        color: "#F64740",
                         area: false,
                         showMark: false,
                     },

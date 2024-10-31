@@ -1,7 +1,6 @@
 import { useOktaAuth } from '@okta/okta-react';
 import React, { useState, useEffect } from 'react';
-import { Container } from "@mui/material";
-import TestForm from './TestForm';
+import Container from "@mui/material/Container";
 import SearchInput from '../components/SearchInput';
 import StockHistoryChart from "../components/Stocks/StockHistoryChart";
 
@@ -34,7 +33,6 @@ const Home = () => {
 
   return (
     <Container>
-      {/* <TestForm/> */}
       <SearchInput />
       <StockHistoryChart />
     </Container>
