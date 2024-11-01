@@ -1,5 +1,5 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
-import { getAsset, getAssets } from "../service/alpaca";
+import { getAsset, getAssets } from "../service/assets";
 
 export const fetchAllAssets = createAsyncThunk(
     "assets/fetchAllAssets",
