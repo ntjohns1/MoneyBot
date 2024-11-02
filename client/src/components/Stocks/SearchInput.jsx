@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { useOktaAuth } from "@okta/okta-react";
-import { setAccessToken } from "../service/axiosConfig";
+import { setAccessToken } from "../../service/axiosConfig";
 // import { FormControl, InputLabel, OutlinedInput, Select, MenuItem, Button, Typography } from "@mui/material";
 import Button from "@mui/material/Button";
 import ButtonGroup from '@mui/material/ButtonGroup';
@@ -16,7 +16,7 @@ import { DatePicker } from '@mui/x-date-pickers';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import dayjs from "dayjs";
-import { fetchAllAssets } from "./AssetsSlice";
+import { fetchAllAssets } from "../AssetsSlice";
 import { fetchStockBars, setFormField, setTimeframe, lastValidDate } from "./StocksSlice";
 
 const SearchInput = () => {

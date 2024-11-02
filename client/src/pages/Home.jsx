@@ -1,7 +1,7 @@
 import { useOktaAuth } from '@okta/okta-react';
 import React, { useState, useEffect } from 'react';
 import Container from "@mui/material/Container";
-import SearchInput from '../components/SearchInput';
+import SearchInput from '../components/Stocks/SearchInput';
 import StockHistoryChart from "../components/Stocks/StockHistoryChart";
 
 const Home = () => {

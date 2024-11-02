@@ -3,7 +3,7 @@ import { useSelector, useDispatch } from "react-redux";
 import Box from "@mui/material/Box";
 import { LineChart } from "@mui/x-charts";
 import dayjs from "dayjs";
-import { fetchStockBars } from "../StocksSlice";
+import { fetchStockBars } from "./StocksSlice";
 
 
 const StockHistoryChart = () => {

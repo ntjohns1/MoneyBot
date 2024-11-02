@@ -25,7 +25,7 @@ export const closeAllPositions = async () => {
     const response = await api.delete(`/positions`);
     return response.data;
   } catch (error) {
-    console.error("Error deleting positions: ", error);
+    console.error("Error closing positions: ", error);
     throw error;
   }
 };
@@ -35,7 +35,7 @@ export const closePosition = async (symbol) => {
     const response = await api.delete(`/positions/${symbol}`);
     return response.data;
   } catch (error) {
-    console.error("Error deleting position: ", error);
+    console.error("Error closing position: ", error);
     throw error;
   }
 };

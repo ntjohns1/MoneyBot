@@ -1,5 +1,5 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
-import { getBarsForSymbol } from "../service/stocks";
+import { getBarsForSymbol } from "../../service/stocks";
 import dayjs from "dayjs";
 
 export const lastValidDate = () => {
