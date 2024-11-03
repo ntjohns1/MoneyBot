@@ -81,7 +81,7 @@ router.get('/portfolio/history', async (req, res) => {
       date_end: date_end ? new Date(date_end) : undefined,
       period,
       timeframe,
-      extended_hours: extended_hours === 'true' // Convert string to boolean
+      extended_hours
     };
 
     const portfolioHistory = await alpaca.getPortfolioHistory(options);

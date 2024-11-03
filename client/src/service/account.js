@@ -53,7 +53,7 @@ export const getPortfolioHistory = async (
   date_end,
   period,
   timeframe,
-  extended_hours
+  extended_hours = false
 ) => {
   try {
     const response = await api.get(`/accounts/activities`, {
