@@ -2,22 +2,16 @@ import React, { useEffect, useState } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { useOktaAuth } from "@okta/okta-react";
 import { setAccessToken } from "../../service/axiosConfig";
-// import { FormControl, InputLabel, OutlinedInput, Select, MenuItem, Button, Typography } from "@mui/material";
 import Button from "@mui/material/Button";
 import ButtonGroup from '@mui/material/ButtonGroup';
 import FormControl from "@mui/material/FormControl";
 import Grid from "@mui/material/Grid2";
 import InputLabel from "@mui/material/InputLabel";
-import MenuItem from "@mui/material/MenuItem";
 import OutlinedInput from "@mui/material/OutlinedInput";
-import Select from "@mui/material/Select";
-import Typography from "@mui/material/Typography";
-import { DatePicker } from '@mui/x-date-pickers';
-import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
-import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
-import dayjs from "dayjs";
 import { fetchAllAssets } from "../AssetsSlice";
-import { fetchStockBars, setFormField, setTimeframe, lastValidDate } from "./StocksSlice";
+import { setFormField, setTimeframe } from "./StocksSlice";
+import { lastValidDate } from "../../util/dayjsHelper";
+import { fetchAccountInfo, fetchPortfolioHistory } from "../Portfolio/accountSlice";
 
 const SearchInput = () => {
     const { authState, oktaAuth } = useOktaAuth();
@@ -28,11 +22,21 @@ const SearchInput = () => {
 
     const { symbol, start, end, timeframe, timeframeUnit } = formState;
 
+    const portfolioHistory = useSelector((state) => state.account.portfolioHistory);
+
+    useEffect(() => {
+        if (portfolioHistory) {
+            console.log("Portfolio History:", portfolioHistory);
+        }
+    }, [portfolioHistory]);
+
+
     useEffect(() => {
         if (authState.isAuthenticated) {
             const accessToken = oktaAuth.getAccessToken();
             setAccessToken(accessToken);
             dispatch(fetchAllAssets());
+            dispatch(fetchPortfolioHistory(lastValidDate(), lastValidDate(), "1D","all"));
         }
 
     }, [authState, dispatch]);
@@ -40,7 +44,7 @@ const SearchInput = () => {
     const handleClick = (range) => {
         let start, timeframe, timeframeUnit;
         console.log(formState);
-        
+
         switch (range) {
             case "Day":
                 start = lastValidDate().format("YYYY-MM-DD");

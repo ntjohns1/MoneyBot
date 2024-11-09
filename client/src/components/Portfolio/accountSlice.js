@@ -1,5 +1,6 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import { getAccountInfo, getPortfolioHistory } from "../../service/account";
+import { lastValidDate } from "../../util/dayjsHelper";
 
 export const fetchAccountInfo = createAsyncThunk(
   "account/getAccountInfo",
@@ -25,6 +26,8 @@ export const fetchPortfolioHistory = createAsyncThunk(
 const accountSlice = createSlice({
   name: "account",
   initialState: {
+    accountInfo: null,
+    portfolioHistory: null,
     loading: false,
     error: null,
   },
@@ -32,6 +35,31 @@ const accountSlice = createSlice({
     setLoading(state, action) {
       state.loading = action.payload;
     },
+  },
+  extraReducers: (builder) => {
+    builder
+      .addCase(fetchAccountInfo.pending, (state) => {
+        state.loading = true;
+      })
+      .addCase(fetchAccountInfo.fulfilled, (state, action) => {
+        state.loading = false;
+        state.accountInfo = action.payload; // Store the result
+      })
+      .addCase(fetchAccountInfo.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.error;
+      })
+      .addCase(fetchPortfolioHistory.pending, (state) => {
+        state.loading = true;
+      })
+      .addCase(fetchPortfolioHistory.fulfilled, (state, action) => {
+        state.loading = false;
+        state.portfolioHistory = action.payload; // Store the result
+      })
+      .addCase(fetchPortfolioHistory.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.error;
+      });
   },
 });
 

@@ -1,6 +1,8 @@
 import express from 'express';
 import { alpaca } from '../../client/index.js';
 
+const router = express.Router();
+
 // Get Account Info
 router.get('/', async (req, res) => {
   try {
