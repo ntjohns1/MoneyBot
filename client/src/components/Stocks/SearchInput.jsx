@@ -18,17 +18,15 @@ const SearchInput = () => {
     const assets = useSelector((state) => state.assets.allAssets);
     const formState = useSelector((state) => state.stocks.formState);
     const bars = useSelector((state) => state.stocks.bars)
+    const accountInfo = useSelector((state) => state.account.accountInfo);
+
     const dispatch = useDispatch();
 
     const { symbol, start, end, timeframe, timeframeUnit } = formState;
 
     const portfolioHistory = useSelector((state) => state.account.portfolioHistory);
 
-    useEffect(() => {
-        if (portfolioHistory) {
-            console.log("Portfolio History:", portfolioHistory);
-        }
-    }, [portfolioHistory]);
+    
 
 
     useEffect(() => {
@@ -36,7 +34,7 @@ const SearchInput = () => {
             const accessToken = oktaAuth.getAccessToken();
             setAccessToken(accessToken);
             dispatch(fetchAllAssets());
-            dispatch(fetchPortfolioHistory(lastValidDate(), lastValidDate(), "1D","all"));
+            dispatch(fetchPortfolioHistory(lastValidDate(), lastValidDate(), "1D","all"));            
         }
 
     }, [authState, dispatch]);
