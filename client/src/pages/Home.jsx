@@ -4,6 +4,7 @@ import Container from "@mui/material/Container";
 import SearchInput from '../components/Stocks/SearchInput';
 import StockHistoryChart from "../components/Stocks/StockHistoryChart";
 import Equity from '../components/Portfolio/Equity';
+import HistoryChart from '../components/Portfolio/HistoryChart';
 
 const Home = () => {
   const { authState, oktaAuth } = useOktaAuth();
@@ -34,8 +35,9 @@ const Home = () => {
   return (
     <Container>
       <Equity />
-      <SearchInput />
-      <StockHistoryChart />
+      <HistoryChart />
+      {/* <SearchInput />
+      <StockHistoryChart /> */}
     </Container>
   );
 };
