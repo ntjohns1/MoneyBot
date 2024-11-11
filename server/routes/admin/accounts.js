@@ -79,8 +79,8 @@ router.get('/portfolio/history', async (req, res) => {
     } = req.query;
 
     const options = {
-      date_start: date_start ? new Date(date_start) : undefined,
-      date_end: date_end ? new Date(date_end) : undefined,
+      date_start,
+      date_end,
       period,
       timeframe,
       extended_hours
@@ -88,6 +88,8 @@ router.get('/portfolio/history', async (req, res) => {
 
     const portfolioHistory = await alpaca.getPortfolioHistory(options);
     res.json(portfolioHistory);
+    console.log(portfolioHistory);
+    
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: 'Failed to fetch portfolio history' });

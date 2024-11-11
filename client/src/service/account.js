@@ -56,7 +56,13 @@ export const getPortfolioHistory = async (
   extended_hours = false
 ) => {
   try {
-    const response = await api.get(`/accounts/activities`, {
+    console.log("date_start: ", date_start);
+    console.log("date_end", date_end);
+    console.log("period:", period);
+    console.log("timeframe:", timeframe);
+    
+    
+    const response = await api.get(`/accounts/portfolio/history`, {
       params: {
         date_start,
         date_end,

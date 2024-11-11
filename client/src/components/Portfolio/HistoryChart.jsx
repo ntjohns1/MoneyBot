@@ -10,32 +10,51 @@ import { lastValidDate } from "../../util/dayjsHelper";
 
 const HistoryChart = () => {
     const { authState, oktaAuth } = useOktaAuth();
-    const portfolioHistory = useSelector((state) => state.account.portfolioHistory);
     const dispatch = useDispatch();
-    const [timestamps, setTimestamps] = useState([]);
-    const [equity, setEquity] = useState([]);
+    const portfolioHistory = useSelector((state) => state.account.portfolioHistory);
+    const timestamps = portfolioHistory.timestamps.map((ts) => dayjs.unix(ts).toDate());
+    const equity = portfolioHistory.equity;
+    
+    useEffect(() => {
+        if (equity && equity.length > 0) {
+            setYAxisMin(Math.min(...equity) * 0.99);
+        }
+    }, [equity]);
     const [yAxisMin, setYAxisMin] = useState(0);
+    const start = lastValidDate().subtract(12, "month").format("YYYY-MM-DD");
+    const end = dayjs(lastValidDate()).format("YYYY-MM-DD");
+
+
+
+useEffect(() => {
+    if (equity && equity.length > 0) {
+        setYAxisMin(Math.min(...equity) * 0.99);
+    }
+}, [equity]);
 
     useEffect(() => {
         if (authState.isAuthenticated) {
             const accessToken = oktaAuth.getAccessToken();
             setAccessToken(accessToken);
-            dispatch(fetchPortfolioHistory("", lastValidDate(), "1A", "1D"));
+            dispatch(fetchPortfolioHistory({ date_start: undefined, date_end: end, period: "1A", timeframe: "1D" }));            
         }
     }, [authState, oktaAuth, dispatch]);
 
     useEffect(() => {
         if (portfolioHistory && portfolioHistory.length > 0) {
-            const newTimestamps = portfolioHistory.map((bar) => dayjs(bar.Timestamp).toDate());
-            const newEquity = portfolioHistory.map((val) => val.equity);
-            setTimestamps(newTimestamps);
-            setEquity(newEquity);
-            setYAxisMin(Math.min(...newEquity) * 0.99);
+            console.log(portfolioHistory);
+            
+
         }
     }, [portfolioHistory]);
 
     const getDateFormatter = () => (date) => dayjs(date).format("MM/DD/YYYY");
 
+    const loading = useSelector((state) => state.account.loading);
+    const error = useSelector((state) => state.account.error);
+
+    if (loading) return <Box>Loading...</Box>;
+    if (error) return <Box>Error loading data: {error.message}</Box>;
     if (!portfolioHistory || portfolioHistory.length === 0) return <Box>No data available</Box>;
 
     return (
