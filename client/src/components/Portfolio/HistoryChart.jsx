@@ -7,6 +7,7 @@ import { LineChart } from "@mui/x-charts";
 import { fetchPortfolioHistory } from "./accountSlice";
 import dayjs from "dayjs";
 import { lastValidDate } from "../../util/dayjsHelper";
+import TimeframeButtons from "./TimeframeButtons";
 
 const HistoryChart = () => {
     const { authState, oktaAuth } = useOktaAuth();
@@ -14,7 +15,8 @@ const HistoryChart = () => {
     const portfolioHistory = useSelector((state) => state.account.portfolioHistory);
     const timestamps = portfolioHistory.timestamps.map((ts) => dayjs.unix(ts).toDate());
     const equity = portfolioHistory.equity;
-    
+    const isMinute = useSelector((state) => state.account.portfolioHistory.isMinute);
+
     useEffect(() => {
         if (equity && equity.length > 0) {
             setYAxisMin(Math.min(...equity) * 0.99);
@@ -26,30 +28,38 @@ const HistoryChart = () => {
 
 
 
-useEffect(() => {
-    if (equity && equity.length > 0) {
-        setYAxisMin(Math.min(...equity) * 0.99);
-    }
-}, [equity]);
+    useEffect(() => {
+        if (equity && equity.length > 0) {
+            setYAxisMin(Math.min(...equity) * 0.99);
+        }
+    }, [equity]);
 
     useEffect(() => {
         if (authState.isAuthenticated) {
             const accessToken = oktaAuth.getAccessToken();
             setAccessToken(accessToken);
-            dispatch(fetchPortfolioHistory({ date_start: undefined, date_end: end, period: "1A", timeframe: "1D" }));            
+            dispatch(fetchPortfolioHistory({ date_start: undefined, date_end: end, period: "1D", timeframe: "1Min" }));
         }
     }, [authState, oktaAuth, dispatch]);
 
     useEffect(() => {
         if (portfolioHistory && portfolioHistory.length > 0) {
             console.log(portfolioHistory);
-            
+
 
         }
     }, [portfolioHistory]);
 
-    const getDateFormatter = () => (date) => dayjs(date).format("MM/DD/YYYY");
+    const getDateFormatter = () => {
 
+        return (date) => {
+            if (isMinute) {
+                return dayjs(date).format("HH:mm"); // Minute-level formatting
+            } else {
+                return dayjs(date).format("MM-DD"); // Day-level formatting
+            }
+        };
+    };
     const loading = useSelector((state) => state.account.loading);
     const error = useSelector((state) => state.account.error);
 
@@ -59,6 +69,7 @@ useEffect(() => {
 
     return (
         <Box>
+            <TimeframeButtons />
             <LineChart
                 xAxis={[
                     {
@@ -71,21 +82,27 @@ useEffect(() => {
                 yAxis={[
                     {
                         min: yAxisMin,
-                        label: 'Price',
+                        label: 'Dollars',
+                        labelFontSize: 16, // Adjust font size for the label
+                        // labelStyle: { marginRight: }, // Adds space between the label and axis
+                        // tickSize: 10, // Adjust the tick size
+                        tickLabelStyle: { fontSize: 12, marginRight: 10 }, // Style the tick labels
+                        position: 'left', // Ensure proper positioning
                     },
                 ]}
                 series={[
                     {
                         data: equity,
-                        label: "Investing",
+                        label: "Total Equity",
                         curve: "linear",
                         color: "#F64740",
                         area: false,
                         showMark: false,
                     },
                 ]}
-                width={1000}
-                height={600}
+                margin={{ right: 30, top: 30, bottom: 30 }}
+                width={1500}
+                height={900}
             />
         </Box>
     );

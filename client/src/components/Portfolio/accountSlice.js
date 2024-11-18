@@ -32,6 +32,7 @@ const accountSlice = createSlice({
     portfolioHistory: {
       timestamps: [],
       equity: [],
+      isMinute: false,
     },
     loading: false,
     error: null,
@@ -63,6 +64,11 @@ const accountSlice = createSlice({
 
         state.portfolioHistory.timestamps = action.payload.timestamp;
         state.portfolioHistory.equity = action.payload.equity;
+
+        const timeframe = action.meta.arg.timeframe; // Assuming timeframe is part of the fetchPortfolioHistory argument
+        console.log("action.meta.arg.timeframe: ", timeframe);
+        
+        state.portfolioHistory.isMinute = ["1Min", "15Min"].includes(timeframe);
       })
       .addCase(fetchPortfolioHistory.rejected, (state, action) => {
         state.loading = false;

@@ -19,7 +19,7 @@ const Equity = () => {
     }, [accountInfo]);
 
     return (
-        <Typography>
+        <Typography variant="h3">
             ${accountInfo?.equity}
         </Typography>
     );
