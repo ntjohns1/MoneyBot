@@ -6,6 +6,7 @@ import StockHistoryChart from "../components/Stocks/StockHistoryChart";
 import Equity from '../components/Portfolio/Equity';
 import HistoryChart from '../components/Portfolio/HistoryChart';
 import TimeframeButtons from '../components/Portfolio/TimeframeButtons';
+import PositionsTable from '../components/Positions/PositionsTable';
 
 const Home = () => {
   const { authState, oktaAuth } = useOktaAuth();
@@ -37,6 +38,7 @@ const Home = () => {
     <Container>
       <Equity />
       <HistoryChart />
+      <PositionsTable />
     </Container>
   );
 };

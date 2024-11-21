@@ -12,7 +12,7 @@ export const fetchAllPositions = createAsyncThunk(
 const positionsSlice = createSlice({
   name: "positions",
   initialState: {
-    positions: [],
+    allPositions: [],
     loading: false,
     error: null,
   },
@@ -28,7 +28,7 @@ const positionsSlice = createSlice({
       })
       .addCase(fetchAllPositions.fulfilled, (state, action) => {
         state.loading = false;
-        state.positions = action.payload;
+        state.allPositions = action.payload;
       })
       .addCase(fetchAllPositions.rejected, (state, action) => {
         state.loading = false;
