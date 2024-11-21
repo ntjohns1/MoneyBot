@@ -1,7 +1,5 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import { getAccountInfo, getPortfolioHistory } from "../../service/account";
-import dayjs from "dayjs";
-import { lastValidDate } from "../../util/dayjsHelper";
 
 export const fetchAccountInfo = createAsyncThunk(
   "account/getAccountInfo",
@@ -14,7 +12,6 @@ export const fetchAccountInfo = createAsyncThunk(
 export const fetchPortfolioHistory = createAsyncThunk(
   "account/getPortfolioHistory",
   async ({ date_start, date_end, period, timeframe }) => {
-    console.log("Parameters:", { date_start, date_end, period, timeframe });
     const res = await getPortfolioHistory(
       date_start,
       date_end,
@@ -67,7 +64,7 @@ const accountSlice = createSlice({
 
         const timeframe = action.meta.arg.timeframe; // Assuming timeframe is part of the fetchPortfolioHistory argument
         console.log("action.meta.arg.timeframe: ", timeframe);
-        
+
         state.portfolioHistory.isMinute = ["1Min", "15Min"].includes(timeframe);
       })
       .addCase(fetchPortfolioHistory.rejected, (state, action) => {
