@@ -1,5 +1,5 @@
 import express from 'express';
-import { alpaca } from '../../client/index.js';  // Alpaca client configured here
+import { alpaca } from '../../client/index.js';
 
 const router = express.Router();
 
@@ -79,11 +79,11 @@ router.get('/portfolio/history', async (req, res) => {
     } = req.query;
 
     const options = {
-      date_start: date_start ? new Date(date_start) : undefined,
-      date_end: date_end ? new Date(date_end) : undefined,
+      date_start,
+      date_end,
       period,
       timeframe,
-      extended_hours: extended_hours === 'true' // Convert string to boolean
+      extended_hours
     };
 
     const portfolioHistory = await alpaca.getPortfolioHistory(options);
