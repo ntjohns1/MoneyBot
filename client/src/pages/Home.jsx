@@ -1,8 +1,12 @@
 import { useOktaAuth } from '@okta/okta-react';
 import React, { useState, useEffect } from 'react';
 import Container from "@mui/material/Container";
-import SearchInput from '../components/SearchInput';
+import SearchInput from '../components/Stocks/SearchInput';
 import StockHistoryChart from "../components/Stocks/StockHistoryChart";
+import Equity from '../components/Portfolio/Equity';
+import HistoryChart from '../components/Portfolio/HistoryChart';
+import TimeframeButtons from '../components/Portfolio/TimeframeButtons';
+import PositionsTable from '../components/Positions/PositionsTable';
 
 const Home = () => {
   const { authState, oktaAuth } = useOktaAuth();
@@ -10,14 +14,13 @@ const Home = () => {
 
   useEffect(() => {
     if (!authState || !authState.isAuthenticated) {
-      // When user isn't authenticated, forget any user info
       setUserInfo(null);
     } else {
       oktaAuth.getUser().then((info) => {
         setUserInfo(info);
       });
     }
-  }, [authState, oktaAuth]); // Update if authState changes
+  }, [authState, oktaAuth]);
 
   const login = async () => {
     await oktaAuth.signInWithRedirect();
@@ -33,8 +36,9 @@ const Home = () => {
 
   return (
     <Container>
-      <SearchInput />
-      <StockHistoryChart />
+      <Equity />
+      <HistoryChart />
+      <PositionsTable />
     </Container>
   );
 };
