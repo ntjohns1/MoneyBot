@@ -12,7 +12,7 @@ export const fetchAllAssets = createAsyncThunk(
 export const fetchOneAsset = createAsyncThunk(
     "assets/fetchOneAsset",
     async ({ symbol }) => {
-        const res = getAsset();
+        const res = getAsset(symbol);
         return res;
     }
 );
