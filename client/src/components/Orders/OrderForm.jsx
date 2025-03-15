@@ -5,13 +5,15 @@ import { setAccessToken } from "../../service/axiosConfig";
 import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
 import FormControl from "@mui/material/FormControl";
+import InputAdornment from '@mui/material/InputAdornment';
 import InputLabel from "@mui/material/InputLabel";
 import OutlinedInput from "@mui/material/OutlinedInput";
 import FormGroup from "@mui/material/FormGroup";
 import FormControlLabel from "@mui/material/FormControlLabel";
 import Checkbox from "@mui/material/Checkbox";
 import Select from "@mui/material/Select";
-import { MenuItem } from "@mui/material";
+import MenuItem from "@mui/material/MenuItem";
+import { setFormField } from "./ordersSlice";
 
 const OrderForm = () => {
     const { authState, oktaAuth } = useOktaAuth();
@@ -36,10 +38,13 @@ const OrderForm = () => {
     } = formState;
 
     const handleInputChange = (e) => {
-        const { name, value } = e.target;
-        dispatch(setFormField({ field: name, value }));
-        console.log(name, value);
-
+        const { name, value, type, checked } = e.target;
+    
+        // For checkboxes, use `checked` instead of `value`
+        const fieldValue = type === "checkbox" ? checked : value;
+    
+        dispatch(setFormField({ field: name, value: fieldValue }));
+        console.log(name, fieldValue);
     };
 
     return (
@@ -64,7 +69,7 @@ const OrderForm = () => {
                     label="Quantity"
                     name="qty"
                     type="number"
-                    value={qty || null}
+                    value={qty}
                     onChange={handleInputChange}
                 />
             </FormControl>
@@ -76,7 +81,7 @@ const OrderForm = () => {
                     label="Dollar Amount"
                     name="notional"
                     type="number"
-                    value={notional || null}
+                    value={notional}
                     onChange={handleInputChange}
                 />
             </FormControl>
@@ -135,7 +140,7 @@ const OrderForm = () => {
                     label="Limit Price"
                     name="limit_price"
                     type="number"
-                    value={limit_price || null}
+                    value={limit_price}
                     onChange={handleInputChange}
                 />
             </FormControl>
@@ -147,7 +152,7 @@ const OrderForm = () => {
                     label="Stop Price"
                     name="stop_price"
                     type="number"
-                    value={stop_price || null}
+                    value={stop_price}
                     onChange={handleInputChange}
                 />
             </FormControl>
@@ -167,7 +172,7 @@ const OrderForm = () => {
                 <Select
                     labelId="order_class"
                     id="order_class"
-                    value={order_class || ""}
+                    value={order_class || "simple"}
                     label="Order Class"
                     onChange={handleInputChange}
                 >
@@ -180,7 +185,29 @@ const OrderForm = () => {
             {/* take_profit */}
             {/* stop_loss */}
             {/* trail_price */}
+            <FormControl fullWidth>
+                <InputLabel htmlFor="trail_price">Trail Price</InputLabel>
+                <OutlinedInput
+                    id="trail_price"
+                    label="Trail Price"
+                    name="trail_price"
+                    value={trail_price}
+                    startAdornment={<InputAdornment position="start">$</InputAdornment>}
+                    onChange={handleInputChange}
+                />
+            </FormControl>
             {/* trail_percent */}
+            <FormControl fullWidth>
+                <InputLabel htmlFor="trail_percent">Trail Percent</InputLabel>
+                <OutlinedInput
+                    id="trail_percent"
+                    label="Trail Percent"
+                    name="trail_percent"
+                    value={trail_percent}
+                    startAdornment={<InputAdornment position="start">%</InputAdornment>}
+                    onChange={handleInputChange}
+                />
+            </FormControl>
         </Box>
     )
 };

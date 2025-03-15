@@ -7,6 +7,7 @@ import Equity from '../components/Portfolio/Equity';
 import HistoryChart from '../components/Portfolio/HistoryChart';
 import TimeframeButtons from '../components/Portfolio/TimeframeButtons';
 import PositionsTable from '../components/Positions/PositionsTable';
+import OrderForm from '../components/Orders/OrderForm';
 
 const Home = () => {
   const { authState, oktaAuth } = useOktaAuth();
@@ -39,6 +40,7 @@ const Home = () => {
       <Equity />
       <HistoryChart />
       <PositionsTable />
+      <OrderForm />
     </Container>
   );
 };

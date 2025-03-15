@@ -6,7 +6,7 @@ export const fetchAllOrders = createAsyncThunk("orders/getOrders", async () => {
   return res;
 });
 
-export const createOrder = createAsyncThunk(
+export const newOrder = createAsyncThunk(
   "orders/createOrder",
   async ({ orderData }) => {
     const res = await createOrder(orderData);
@@ -20,14 +20,14 @@ const ordersSlice = createSlice({
     formState: {
       // required
       symbol: "", // string
-      qty: null, // number
-      notional: null, // number
+      qty: "", // number
+      notional: "", // number
       side: "buy", // 'buy' | 'sell'
       type: "market", // 'market' | 'limit' | 'stop' | 'stop_limit' | 'trailing_stop'
       time_in_force: "day", // 'day' | 'gtc' | 'opg' | 'ioc'
       // optional
-      limit_price: null, // number
-      stop_price: null, // number
+      limit_price: "", // number
+      stop_price: "", // number
       client_order_id: "", // string
       extended_hours: false, // boolean
       order_class: "", // simple (or ""), 'oco', 'oto', 'bracket'
