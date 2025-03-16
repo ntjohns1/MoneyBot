@@ -1,10 +1,34 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
+import { subscribe, unsubscribe } from "../service/websocket";
 
 const initialState = {
   messages: [],
   subscribedSymbols: [],
   isConnected: false,
 };
+
+export const subscribe = createAsyncThunk("websocket/subscribe", async (symbol) => {
+  try {
+    const response = await subscribe(symbol);
+    return response;
+  } catch (error) {
+    console.error("Error subscribing to symbol:", error);
+    throw error;
+  }
+});
+
+export const unsubscribe = createAsyncThunk(
+  "websocket/unsubscribe",
+  async (symbol) => {
+    try {
+      const response = await unsubscribe(symbol);
+      return response;
+    } catch (error) {
+      console.error("Error unsubscribing from symbol:", error);
+      throw error;
+    }
+  }
+);
 
 const websocketSlice = createSlice({
   name: "websocket",
