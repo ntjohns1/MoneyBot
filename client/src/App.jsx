@@ -33,11 +33,11 @@ const App = () => {
         <header className="App-header">
           <HomeNavbar/>
         </header>
-      <Container style={{marginTop: '7em'}} className="App">
+
         <main>
           <Routes />
         </main>
-      </Container>
+
     </Security>
   );
 };

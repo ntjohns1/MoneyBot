@@ -1,13 +1,7 @@
 import { useOktaAuth } from '@okta/okta-react';
 import React, { useState, useEffect } from 'react';
 import Container from "@mui/material/Container";
-import SearchInput from '../components/Stocks/SearchInput';
-import StockHistoryChart from "../components/Stocks/StockHistoryChart";
-import Equity from '../components/Portfolio/Equity';
-import HistoryChart from '../components/Portfolio/HistoryChart';
-import TimeframeButtons from '../components/Portfolio/TimeframeButtons';
-import PositionsTable from '../components/Positions/PositionsTable';
-import OrderForm from '../components/Orders/OrderForm';
+import DashboardLayout from '../layout/DashboardLayout';
 
 const Home = () => {
   const { authState, oktaAuth } = useOktaAuth();
@@ -36,12 +30,9 @@ const Home = () => {
   }
 
   return (
-    <Container>
-      <Equity />
-      <HistoryChart />
-      <PositionsTable />
-      <OrderForm />
-    </Container>
+    // <Container>
+      <DashboardLayout />
+    // </Container>
   );
 };
 export default Home;
