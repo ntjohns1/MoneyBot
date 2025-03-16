@@ -5,7 +5,7 @@ import { setAccessToken } from "../../service/axiosConfig";
 import Box from "@mui/material/Box";
 import { fetchPortfolioHistory } from "./accountSlice";
 import dayjs from "dayjs";
-import { lastValidDate } from "../../util/dayjsHelper";
+import { lastValidDate } from "../../util/helpers";
 import TimeframeButtons from "./TimeframeButtons";
 import Chart from "react-apexcharts";
 

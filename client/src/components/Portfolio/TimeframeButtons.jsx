@@ -6,7 +6,7 @@ import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
 import ButtonGroup from '@mui/material/ButtonGroup';
 import dayjs from "dayjs";
-import { lastValidDate } from "../../util/dayjsHelper";
+import { lastValidDate } from "../../util/helpers";
 import { fetchPortfolioHistory } from "./accountSlice";
 
 const TimeframeButtons = () => {

@@ -10,7 +10,7 @@ import InputLabel from "@mui/material/InputLabel";
 import OutlinedInput from "@mui/material/OutlinedInput";
 import { fetchAllAssets } from "../AssetsSlice";
 import { setFormField, setTimeframe } from "./StocksSlice";
-import { lastValidDate } from "../../util/dayjsHelper";
+import { lastValidDate } from "../../util/helpers";
 import { fetchAccountInfo, fetchPortfolioHistory } from "../Portfolio/accountSlice";
 
 const SearchInput = () => {
