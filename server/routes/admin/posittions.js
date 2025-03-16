@@ -7,7 +7,7 @@ const router = express.Router();
 router.get('/', async (req, res) => {
   try {
     const positions = await alpaca.getPositions();
-    console.log(positions);
+    // console.log(positions);
     
     res.json(positions);
   } catch (error) {

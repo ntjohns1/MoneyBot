@@ -1,3 +1,5 @@
+import e from 'express';
+
 export { default as accounts } from './admin/accounts.js';
 export { default as assets } from './admin/assets.js';
 export { default as datetime } from './admin/datetime.js';
@@ -12,3 +14,4 @@ export { default as crypto } from './data/crypto.js';
 export { default as options } from './data/options.js';
 
 // WebSockets
+export { default as websocket } from './data/websocket.js';

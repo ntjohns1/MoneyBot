@@ -143,7 +143,7 @@ router.get("/:symbol", async (req, res) => {
   try {
     const { symbol } = req.params;
     const { start, end, timeframe, timeframeUnit, limit } = req.query;
-    console.log(req.query);
+    // console.log(req.query);
 
     const options = {
       start: start || getFormattedDate(yesterday),
