@@ -10,7 +10,37 @@ import TableHead from '@mui/material/TableHead';
 import TableRow from '@mui/material/TableRow';
 import Paper from '@mui/material/Paper';
 import Typography from "@mui/material/Typography";
-// import { fetchWatchlist } from "./watchlistSlice";  // Redux action to fetch watchlist data
+import Box from '@mui/material/Box';
+import { styled } from '@mui/material/styles';
+
+// Styled components
+const StyledTableContainer = styled(TableContainer)(({ theme }) => ({
+  backgroundColor: '#1a1a1a',
+  color: '#ffffff',
+  maxHeight: '100vh',
+  '& .MuiTableCell-root': {
+    color: '#ffffff',
+    borderColor: '#333333',
+  },
+}));
+
+const StyledTableCell = styled(TableCell)(({ theme }) => ({
+  padding: '8px 16px',
+  fontSize: '0.875rem',
+  '&.positive': {
+    color: '#4caf50',
+  },
+  '&.negative': {
+    color: '#f44336',
+  },
+}));
+
+const StyledTableRow = styled(TableRow)(({ theme }) => ({
+  '&:hover': {
+    backgroundColor: '#2a2a2a',
+    cursor: 'pointer',
+  },
+}));
 
 const dummyWatchlist = [
     { symbol: "AAPL", last_price: 175.12, change: 2.45, percent_change: 1.42, high_52w: 198.23, low_52w: 134.65, volume: 12034567 },
@@ -20,68 +50,84 @@ const dummyWatchlist = [
     { symbol: "GOOGL", last_price: 2801.23, change: -12.45, percent_change: -0.44, high_52w: 2956.73, low_52w: 2501.42, volume: 4231789 },
 ];
 
+const formatNumber = (num) => {
+  return new Intl.NumberFormat('en-US', {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  }).format(num);
+};
+
+const formatVolume = (volume) => {
+  if (volume >= 1000000) {
+    return `${(volume / 1000000).toFixed(2)}M`;
+  } else if (volume >= 1000) {
+    return `${(volume / 1000).toFixed(2)}K`;
+  }
+  return volume.toString();
+};
+
 const WatchlistTable = () => {
     const { authState, oktaAuth } = useOktaAuth();
     // const dispatch = useDispatch();
-    // const watchlist = useSelector((state) => state.watchlist.items);  // Fetching watchlist from Redux
-
-    // useEffect(() => {
-    //     if (authState.isAuthenticated) {
-    //         const accessToken = oktaAuth.getAccessToken();
-    //         setAccessToken(accessToken);
-    //         dispatch(fetchWatchlist());  // Dispatch action to fetch watchlist
-    //     }
-    // }, [dispatch]);
+    // const watchlist = useSelector((state) => state.watchlist.items);
 
     return (
-        <TableContainer component={Paper}>
+        <Box sx={{ width: '100%', bgcolor: '#1a1a1a', p: 2 }}>
             <Typography
                 variant="h6"
                 sx={{
+                    color: '#ffffff',
                     display: 'flex',
                     justifyContent: 'left',
                     alignItems: 'center',
-                    pt: { xs: 1 },
-                    pb: { xs: 1 },
-                    mt: { xs: 1 },
-                    mb: { xs: 1 },
-                    ml: { xs: 2 }
+                    pb: 2,
                 }}
             >
                 Watchlist
             </Typography>
-            <Table sx={{ minWidth: 650 }} size="small" aria-label="watchlist table">
-                <TableHead>
-                    <TableRow>
-                        <TableCell>Symbol</TableCell>
-                        <TableCell align="right">Last Price</TableCell>
-                        <TableCell align="right">Change</TableCell>
-                        <TableCell align="right">% Change</TableCell>
-                        <TableCell align="right">52W High</TableCell>
-                        <TableCell align="right">52W Low</TableCell>
-                        <TableCell align="right">Volume</TableCell>
-                    </TableRow>
-                </TableHead>
-                <TableBody>
-                    {dummyWatchlist.map((stock) => (
-                        <TableRow
-                            key={stock.symbol}
-                            sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
-                        >
-                            <TableCell component="th" scope="row">
-                                {stock.symbol}
-                            </TableCell>
-                            <TableCell align="right">{stock.last_price}</TableCell>
-                            <TableCell align="right">{stock.change}</TableCell>
-                            <TableCell align="right">{stock.percent_change}</TableCell>
-                            <TableCell align="right">{stock.high_52w}</TableCell>
-                            <TableCell align="right">{stock.low_52w}</TableCell>
-                            <TableCell align="right">{stock.volume}</TableCell>
+            <StyledTableContainer component={Paper}>
+                <Table stickyHeader size="small">
+                    <TableHead>
+                        <TableRow>
+                            <StyledTableCell>Symbol</StyledTableCell>
+                            <StyledTableCell align="right">Last</StyledTableCell>
+                            <StyledTableCell align="right">Change</StyledTableCell>
+                            <StyledTableCell align="right">% Change</StyledTableCell>
+                            <StyledTableCell align="right">52W High</StyledTableCell>
+                            <StyledTableCell align="right">52W Low</StyledTableCell>
+                            <StyledTableCell align="right">Volume</StyledTableCell>
                         </TableRow>
-                    ))}
-                </TableBody>
-            </Table>
-        </TableContainer>
+                    </TableHead>
+                    <TableBody>
+                        {dummyWatchlist.map((row) => (
+                            <StyledTableRow key={row.symbol}>
+                                <StyledTableCell component="th" scope="row">
+                                    {row.symbol}
+                                </StyledTableCell>
+                                <StyledTableCell align="right">
+                                    ${formatNumber(row.last_price)}
+                                </StyledTableCell>
+                                <StyledTableCell 
+                                    align="right"
+                                    className={row.change >= 0 ? 'positive' : 'negative'}
+                                >
+                                    {row.change >= 0 ? '+' : ''}{formatNumber(row.change)}
+                                </StyledTableCell>
+                                <StyledTableCell 
+                                    align="right"
+                                    className={row.percent_change >= 0 ? 'positive' : 'negative'}
+                                >
+                                    {row.percent_change >= 0 ? '+' : ''}{formatNumber(row.percent_change)}%
+                                </StyledTableCell>
+                                <StyledTableCell align="right">${formatNumber(row.high_52w)}</StyledTableCell>
+                                <StyledTableCell align="right">${formatNumber(row.low_52w)}</StyledTableCell>
+                                <StyledTableCell align="right">{formatVolume(row.volume)}</StyledTableCell>
+                            </StyledTableRow>
+                        ))}
+                    </TableBody>
+                </Table>
+            </StyledTableContainer>
+        </Box>
     );
 };
 

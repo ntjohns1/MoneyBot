@@ -7,7 +7,7 @@ const initialState = {
   isConnected: false,
 };
 
-export const subscribe = createAsyncThunk("websocket/subscribe", async (symbol) => {
+export const subscribeForSymbol = createAsyncThunk("websocket/subscribe", async (symbol) => {
   try {
     const response = await subscribe(symbol);
     return response;
@@ -17,7 +17,7 @@ export const subscribe = createAsyncThunk("websocket/subscribe", async (symbol) 
   }
 });
 
-export const unsubscribe = createAsyncThunk(
+export const unsubscribeForSymbol = createAsyncThunk(
   "websocket/unsubscribe",
   async (symbol) => {
     try {

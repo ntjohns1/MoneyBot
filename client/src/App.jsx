@@ -19,6 +19,7 @@ import { Container } from "@mui/material";
 import config from './config';
 import HomeNavbar from './HomeNavbar';
 import Routes from './components/Routes';
+import WebSocketTester from './components/WebSocketTester';
 
 const oktaAuth = new OktaAuth(config.oidc);
 
@@ -32,6 +33,7 @@ const App = () => {
     <Security oktaAuth={oktaAuth} restoreOriginalUri={restoreOriginalUri}>
         <header className="App-header">
           <HomeNavbar/>
+          <WebSocketTester />
         </header>
 
         <main>
