@@ -47,7 +47,12 @@ router.post('/:id/add', async (req, res) => {
     res.json(updatedWatchlist);
   } catch (error) {
     console.error(error);
-    res.status(500).json({ error: `Failed to add symbol ${symbol} to watchlist ${id}` });
+    // Check for duplicate symbol error
+    if (error.response?.data?.code === 40010001) {
+      res.status(422).json({ error: `Symbol ${req.body.symbol} is already in the watchlist` });
+    } else {
+      res.status(500).json({ error: `Failed to add symbol ${req.body.symbol} to watchlist ${req.params.id}` });
+    }
   }
 });
 

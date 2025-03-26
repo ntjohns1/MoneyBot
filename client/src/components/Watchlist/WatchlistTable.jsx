@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useCallback, useMemo } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { useOktaAuth } from "@okta/okta-react";
 import { setAccessToken } from "../../service/axiosConfig";
@@ -11,7 +11,18 @@ import TableRow from '@mui/material/TableRow';
 import Paper from '@mui/material/Paper';
 import Typography from "@mui/material/Typography";
 import Box from '@mui/material/Box';
+import IconButton from '@mui/material/IconButton';
+import DeleteIcon from '@mui/icons-material/Delete';
+import CircularProgress from '@mui/material/CircularProgress';
+import Alert from '@mui/material/Alert';
 import { styled } from '@mui/material/styles';
+import {
+  fetchAllWatchlists,
+  removeSymbol,
+  setSelectedWatchlist,
+  fetchWatchlistById,
+} from "./watchlistSlice";
+import useWebSocket from "../../features/useWebSocket";
 
 // Styled components
 const StyledTableContainer = styled(TableContainer)(({ theme }) => ({
@@ -42,14 +53,6 @@ const StyledTableRow = styled(TableRow)(({ theme }) => ({
   },
 }));
 
-const dummyWatchlist = [
-    { symbol: "AAPL", last_price: 175.12, change: 2.45, percent_change: 1.42, high_52w: 198.23, low_52w: 134.65, volume: 12034567 },
-    { symbol: "TSLA", last_price: 812.36, change: -5.67, percent_change: -0.69, high_52w: 920.45, low_52w: 600.21, volume: 15478932 },
-    { symbol: "AMZN", last_price: 3298.45, change: 15.32, percent_change: 0.47, high_52w: 3550.50, low_52w: 2876.34, volume: 8945634 },
-    { symbol: "MSFT", last_price: 310.87, change: 1.23, percent_change: 0.40, high_52w: 349.67, low_52w: 275.12, volume: 6789456 },
-    { symbol: "GOOGL", last_price: 2801.23, change: -12.45, percent_change: -0.44, high_52w: 2956.73, low_52w: 2501.42, volume: 4231789 },
-];
-
 const formatNumber = (num) => {
   return new Intl.NumberFormat('en-US', {
     minimumFractionDigits: 2,
@@ -67,68 +70,201 @@ const formatVolume = (volume) => {
 };
 
 const WatchlistTable = () => {
-    const { authState, oktaAuth } = useOktaAuth();
-    // const dispatch = useDispatch();
-    // const watchlist = useSelector((state) => state.watchlist.items);
+  const dispatch = useDispatch();
+  const { authState, oktaAuth } = useOktaAuth();
+  const { watchlists, selectedWatchlist, loading, error } = useSelector((state) => state.watchlist);
+  const { priceData, subscribedSymbols } = useSelector((state) => state.websocket);
+  const { subscribe } = useWebSocket("ws://localhost:8080");
 
+  const fetchWatchlistDetails = useCallback((id) => {
+    dispatch(fetchWatchlistById(id));
+  }, [dispatch]);
+
+  // Memoize the current symbols to prevent unnecessary resubscriptions
+  const currentSymbols = useMemo(() => {
+    return selectedWatchlist?.assets?.map(asset => asset.symbol) || [];
+  }, [selectedWatchlist?.assets]);
+
+  // Fetch watchlists on mount and when auth changes
+  useEffect(() => {
+    if (authState?.isAuthenticated) {
+      const accessToken = oktaAuth.getAccessToken();
+      setAccessToken(accessToken);
+      dispatch(fetchAllWatchlists());
+    }
+  }, [dispatch, authState?.isAuthenticated, oktaAuth]);
+
+  // Select first watchlist if none selected
+  useEffect(() => {
+    if (!selectedWatchlist && watchlists.length > 0) {
+      const firstWatchlist = watchlists[0];
+      dispatch(setSelectedWatchlist(firstWatchlist));
+      fetchWatchlistDetails(firstWatchlist.id);
+    }
+  }, [watchlists, selectedWatchlist, dispatch, fetchWatchlistDetails]);
+
+  // Subscribe to symbols in the selected watchlist
+  useEffect(() => {
+    if (selectedWatchlist?.id && !selectedWatchlist?.assets) {
+      fetchWatchlistDetails(selectedWatchlist.id);
+    }
+    
+    if (selectedWatchlist?.assets) {
+      // Only subscribe to symbols that aren't already subscribed
+      currentSymbols.forEach(symbol => {
+        if (!subscribedSymbols.includes(symbol)) {
+          subscribe(symbol);
+        }
+      });
+    }
+  }, [selectedWatchlist?.id, currentSymbols, subscribedSymbols, subscribe, fetchWatchlistDetails]);
+
+  // Refresh watchlist data periodically
+  useEffect(() => {
+    if (selectedWatchlist?.id) {
+      const interval = setInterval(() => {
+        dispatch(fetchWatchlistById(selectedWatchlist.id));
+      }, 30000); // Refresh every 30 seconds
+
+      return () => clearInterval(interval);
+    }
+  }, [selectedWatchlist?.id, dispatch]);
+
+  // Format the price data for display
+  const getDisplayData = (symbol) => {
+    const data = priceData[symbol] || {
+      price: 0,
+      change: 0,
+      changePercent: 0,
+      volume: 0,
+      highPrice: 0,
+      lowPrice: 0,
+    };
+
+    return {
+      price: data.price,
+      change: data.change,
+      changePercent: data.changePercent,
+      volume: data.volume,
+      highPrice: data.highPrice,
+      lowPrice: data.lowPrice,
+    };
+  };
+
+  const handleRemoveSymbol = async (symbol) => {
+    if (selectedWatchlist) {
+      try {
+        await dispatch(removeSymbol({ id: selectedWatchlist.id, symbol })).unwrap();
+        // Refresh the watchlist after removing symbol
+        dispatch(fetchWatchlistById(selectedWatchlist.id));
+      } catch (error) {
+        console.error('Failed to remove symbol:', error);
+      }
+    }
+  };
+
+  if (loading) {
     return (
-        <Box sx={{ width: '100%', bgcolor: '#1a1a1a', p: 2 }}>
-            <Typography
-                variant="h6"
-                sx={{
-                    color: '#ffffff',
-                    display: 'flex',
-                    justifyContent: 'left',
-                    alignItems: 'center',
-                    pb: 2,
-                }}
-            >
-                Watchlist
-            </Typography>
-            <StyledTableContainer component={Paper}>
-                <Table stickyHeader size="small">
-                    <TableHead>
-                        <TableRow>
-                            <StyledTableCell>Symbol</StyledTableCell>
-                            <StyledTableCell align="right">Last</StyledTableCell>
-                            <StyledTableCell align="right">Change</StyledTableCell>
-                            <StyledTableCell align="right">% Change</StyledTableCell>
-                            <StyledTableCell align="right">52W High</StyledTableCell>
-                            <StyledTableCell align="right">52W Low</StyledTableCell>
-                            <StyledTableCell align="right">Volume</StyledTableCell>
-                        </TableRow>
-                    </TableHead>
-                    <TableBody>
-                        {dummyWatchlist.map((row) => (
-                            <StyledTableRow key={row.symbol}>
-                                <StyledTableCell component="th" scope="row">
-                                    {row.symbol}
-                                </StyledTableCell>
-                                <StyledTableCell align="right">
-                                    ${formatNumber(row.last_price)}
-                                </StyledTableCell>
-                                <StyledTableCell 
-                                    align="right"
-                                    className={row.change >= 0 ? 'positive' : 'negative'}
-                                >
-                                    {row.change >= 0 ? '+' : ''}{formatNumber(row.change)}
-                                </StyledTableCell>
-                                <StyledTableCell 
-                                    align="right"
-                                    className={row.percent_change >= 0 ? 'positive' : 'negative'}
-                                >
-                                    {row.percent_change >= 0 ? '+' : ''}{formatNumber(row.percent_change)}%
-                                </StyledTableCell>
-                                <StyledTableCell align="right">${formatNumber(row.high_52w)}</StyledTableCell>
-                                <StyledTableCell align="right">${formatNumber(row.low_52w)}</StyledTableCell>
-                                <StyledTableCell align="right">{formatVolume(row.volume)}</StyledTableCell>
-                            </StyledTableRow>
-                        ))}
-                    </TableBody>
-                </Table>
-            </StyledTableContainer>
-        </Box>
+      <Box sx={{ display: 'flex', justifyContent: 'center', p: 3 }}>
+        <CircularProgress />
+      </Box>
     );
+  }
+
+  if (error) {
+    return (
+      <Box sx={{ p: 2 }}>
+        <Alert severity="error">{error}</Alert>
+      </Box>
+    );
+  }
+
+  if (!selectedWatchlist) {
+    return (
+      <Box sx={{ p: 2 }}>
+        <Alert severity="info">No watchlist selected</Alert>
+      </Box>
+    );
+  }
+
+  return (
+    <Box sx={{ width: '100%', bgcolor: '#1a1a1a', p: 2 }}>
+      <Typography
+        variant="h6"
+        sx={{
+          color: '#ffffff',
+          display: 'flex',
+          justifyContent: 'left',
+          alignItems: 'center',
+          pb: 2,
+        }}
+      >
+        {selectedWatchlist?.name}
+      </Typography>
+
+      <StyledTableContainer component={Paper}>
+        <Table stickyHeader size="small">
+          <TableHead>
+            <TableRow>
+              <StyledTableCell>Symbol</StyledTableCell>
+              <StyledTableCell align="right">Last</StyledTableCell>
+              <StyledTableCell align="right">Change</StyledTableCell>
+              <StyledTableCell align="right">% Change</StyledTableCell>
+              <StyledTableCell align="right">High</StyledTableCell>
+              <StyledTableCell align="right">Low</StyledTableCell>
+              <StyledTableCell align="right">Volume</StyledTableCell>
+              <StyledTableCell align="right">Actions</StyledTableCell>
+            </TableRow>
+          </TableHead>
+          <TableBody>
+            {selectedWatchlist?.assets?.map((asset) => {
+              const data = getDisplayData(asset.symbol);
+              return (
+                <StyledTableRow key={asset.symbol}>
+                  <StyledTableCell component="th" scope="row">
+                    {asset.symbol}
+                  </StyledTableCell>
+                  <StyledTableCell align="right">
+                    ${formatNumber(data.price)}
+                  </StyledTableCell>
+                  <StyledTableCell 
+                    align="right"
+                    className={data.change >= 0 ? 'positive' : 'negative'}
+                  >
+                    {data.change >= 0 ? '+' : ''}{formatNumber(data.change)}
+                  </StyledTableCell>
+                  <StyledTableCell 
+                    align="right"
+                    className={data.changePercent >= 0 ? 'positive' : 'negative'}
+                  >
+                    {data.changePercent >= 0 ? '+' : ''}{formatNumber(data.changePercent)}%
+                  </StyledTableCell>
+                  <StyledTableCell align="right">
+                    ${formatNumber(data.highPrice)}
+                  </StyledTableCell>
+                  <StyledTableCell align="right">
+                    ${formatNumber(data.lowPrice)}
+                  </StyledTableCell>
+                  <StyledTableCell align="right">
+                    {formatVolume(data.volume)}
+                  </StyledTableCell>
+                  <StyledTableCell align="right">
+                    <IconButton
+                      size="small"
+                      onClick={() => handleRemoveSymbol(asset.symbol)}
+                      sx={{ color: '#f44336' }}
+                    >
+                      <DeleteIcon />
+                    </IconButton>
+                  </StyledTableCell>
+                </StyledTableRow>
+              );
+            })}
+          </TableBody>
+        </Table>
+      </StyledTableContainer>
+    </Box>
+  );
 };
 
 export default WatchlistTable;

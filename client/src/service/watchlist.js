@@ -1,6 +1,6 @@
-import axios from '../utils/axiosConfig';
+import api from './axiosConfig';
 
-const WATCHLIST_BASE_URL = '/api/admin/watchlist';
+const WATCHLIST_BASE_URL = '/watchlist';
 
 /**
  * Get all watchlists
@@ -8,7 +8,7 @@ const WATCHLIST_BASE_URL = '/api/admin/watchlist';
  */
 export const getAllWatchlists = async () => {
   try {
-    const response = await axios.get(WATCHLIST_BASE_URL);
+    const response = await api.get(WATCHLIST_BASE_URL);
     return response.data;
   } catch (error) {
     console.error('Error fetching watchlists:', error);
@@ -23,7 +23,7 @@ export const getAllWatchlists = async () => {
  */
 export const getWatchlistById = async (id) => {
   try {
-    const response = await axios.get(`${WATCHLIST_BASE_URL}/${id}`);
+    const response = await api.get(`${WATCHLIST_BASE_URL}/${id}`);
     return response.data;
   } catch (error) {
     console.error(`Error fetching watchlist ${id}:`, error);
@@ -39,7 +39,7 @@ export const getWatchlistById = async (id) => {
  */
 export const createWatchlist = async (name, symbols = []) => {
   try {
-    const response = await axios.post(WATCHLIST_BASE_URL, { name, symbols });
+    const response = await api.post(WATCHLIST_BASE_URL, { name, symbols });
     return response.data;
   } catch (error) {
     console.error('Error creating watchlist:', error);
@@ -55,7 +55,7 @@ export const createWatchlist = async (name, symbols = []) => {
  */
 export const addSymbolToWatchlist = async (id, symbol) => {
   try {
-    const response = await axios.post(`${WATCHLIST_BASE_URL}/${id}/add`, { symbol });
+    const response = await api.post(`${WATCHLIST_BASE_URL}/${id}/add`, { symbol });
     return response.data;
   } catch (error) {
     console.error(`Error adding symbol ${symbol} to watchlist ${id}:`, error);
@@ -71,7 +71,7 @@ export const addSymbolToWatchlist = async (id, symbol) => {
  */
 export const updateWatchlist = async (id, symbols) => {
   try {
-    const response = await axios.put(`${WATCHLIST_BASE_URL}/${id}`, { symbols });
+    const response = await api.put(`${WATCHLIST_BASE_URL}/${id}`, { symbols });
     return response.data;
   } catch (error) {
     console.error(`Error updating watchlist ${id}:`, error);
@@ -86,7 +86,7 @@ export const updateWatchlist = async (id, symbols) => {
  */
 export const deleteWatchlist = async (id) => {
   try {
-    await axios.delete(`${WATCHLIST_BASE_URL}/${id}`);
+    await api.delete(`${WATCHLIST_BASE_URL}/${id}`);
   } catch (error) {
     console.error(`Error deleting watchlist ${id}:`, error);
     throw error;
@@ -101,7 +101,7 @@ export const deleteWatchlist = async (id) => {
  */
 export const removeSymbolFromWatchlist = async (id, symbol) => {
   try {
-    const response = await axios.delete(`${WATCHLIST_BASE_URL}/${id}/symbol/${symbol}`);
+    const response = await api.delete(`${WATCHLIST_BASE_URL}/${id}/symbol/${symbol}`);
     return response.data;
   } catch (error) {
     console.error(`Error removing symbol ${symbol} from watchlist ${id}:`, error);
