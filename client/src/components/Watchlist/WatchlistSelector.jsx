@@ -4,7 +4,6 @@ import { setSelectedWatchlist, removeWatchlist } from './watchlistSlice';
 import Box from '@mui/material/Box';
 import Tabs from '@mui/material/Tabs';
 import Tab from '@mui/material/Tab';
-import IconButton from '@mui/material/IconButton';
 import DeleteIcon from '@mui/icons-material/Delete';
 import { styled } from '@mui/material/styles';
 
@@ -44,6 +43,24 @@ const WatchlistSelector = () => {
     }
   };
 
+  const renderTabLabel = (watchlist) => (
+    <Box sx={{ display: 'flex', alignItems: 'center', width: '100%' }}>
+      <span style={{ flexGrow: 1 }}>{watchlist.name}</span>
+      <DeleteIcon
+        fontSize="small"
+        onClick={(e) => handleDelete(e, watchlist.id)}
+        sx={{
+          ml: 1,
+          color: '#f44336',
+          cursor: 'pointer',
+          '&:hover': {
+            color: '#d32f2f',
+          },
+        }}
+      />
+    </Box>
+  );
+
   return (
     <Box sx={{ borderBottom: 1, borderColor: '#333333' }}>
       <StyledTabs
@@ -56,24 +73,7 @@ const WatchlistSelector = () => {
           <StyledTab
             key={watchlist.id}
             value={watchlist.id}
-            label={
-              <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                {watchlist.name}
-                <IconButton
-                  size="small"
-                  onClick={(e) => handleDelete(e, watchlist.id)}
-                  sx={{
-                    ml: 1,
-                    color: '#f44336',
-                    '&:hover': {
-                      backgroundColor: 'rgba(244, 67, 54, 0.1)',
-                    },
-                  }}
-                >
-                  <DeleteIcon fontSize="small" />
-                </IconButton>
-              </Box>
-            }
+            label={renderTabLabel(watchlist)}
           />
         ))}
       </StyledTabs>

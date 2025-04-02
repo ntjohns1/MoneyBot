@@ -1,43 +1,40 @@
-import React, { useState } from "react";
-import { useSelector } from "react-redux";
-import useWebSocket from "../features/useWebSocket";
+import React, { useEffect } from 'react';
+import { useSelector } from 'react-redux';
+import useWebSocket from '../features/useWebSocket';
+import { Box, Paper, Typography } from '@mui/material';
 
-const StockUpdates = () => {
-  const { subscribe, unsubscribe } = useWebSocket("ws://localhost:8080/api/stream");
-  const messages = useSelector((state) => state.websocket.messages);
-  const [symbol, setSymbol] = useState("");
+const WebSocketTester = () => {
+  const { subscribe } = useWebSocket('ws://localhost:8080');
+  const { connected, data } = useSelector((state) => state.websocket);
+
+  // Subscribe to test symbols
+  useEffect(() => {
+    console.log("🔄 Setting up test subscriptions");
+    const testSymbols = ['AAPL', 'NVDA'];
+    
+    // Small delay to ensure WebSocket is initialized
+    const timer = setTimeout(() => {
+      testSymbols.forEach(symbol => {
+        console.log(`🔔 Testing subscription for ${symbol}`);
+        subscribe(symbol);
+      });
+    }, 1000);
+
+    return () => clearTimeout(timer);
+  }, [subscribe]);
 
   return (
-    <div>
-      <h2>Stock WebSocket</h2>
-      <input
-        type="text"
-        placeholder="Enter stock symbol"
-        value={symbol}
-        onChange={(e) => setSymbol(e.target.value.toUpperCase())}
-      />
-      <button
-        onClick={() => {
-          if (!symbol.trim()) {
-            console.warn("⚠️ No symbol entered. Subscription aborted.");
-            return;
-          }
-          console.log(`📤 Subscribing to: ${symbol}`);
-          subscribe(symbol);
-        }}
-        disabled={!symbol.trim()} // Disable button when no symbol is entered
-      >
-        Subscribe
-      </button>
-      <button onClick={() => unsubscribe([symbol])}>Unsubscribe</button>
-      <h3>Messages:</h3>
-      <ul>
-        {messages.slice(-10).map((msg, index) => (
-          <li key={index}>{JSON.stringify(msg)}</li>
-        ))}
-      </ul>
-    </div>
+    <Box sx={{ p: 2 }}>
+      <Paper sx={{ p: 2 }}>
+        <Typography variant="h6">WebSocket Test</Typography>
+        <Typography>Status: {connected ? '🟢 Connected' : '🔴 Disconnected'}</Typography>
+        <Typography sx={{ mt: 2 }}>Data:</Typography>
+        <pre style={{ maxHeight: '400px', overflow: 'auto' }}>
+          {JSON.stringify(data, null, 2)}
+        </pre>
+      </Paper>
+    </Box>
   );
 };
 
-export default StockUpdates;
+export default WebSocketTester;

@@ -1,58 +1,88 @@
-import { useEffect, useRef } from "react";
-import { useDispatch, useSelector } from "react-redux";
-import { addMessage, setConnected, updateSubscriptions } from "./webSocketSlice";
+import { useEffect, useRef, useCallback } from "react";
+import { useDispatch } from "react-redux";
+import { setConnected, updateData } from "./webSocketSlice";
 
 const useWebSocket = (url) => {
   const dispatch = useDispatch();
-  const subscribedSymbols = useSelector((state) => state.websocket.subscribedSymbols);
-  const socketRef = useRef(null); // Use useRef to persist WebSocket instance
+  const socketRef = useRef(null);
+  const pendingSubscriptionsRef = useRef([]);
 
-  useEffect(() => {
-    socketRef.current = new WebSocket(url);
+  const connect = useCallback(() => {
+    if (socketRef.current?.readyState === 1) return;
 
-    socketRef.current.onopen = () => {
-      dispatch(setConnected(true));
+    console.log("🔌 Connecting to WebSocket:", url);
+    const socket = new WebSocket(url);
+    socketRef.current = socket;
+
+    socket.onopen = () => {
       console.log("✅ WebSocket connected");
+      dispatch(setConnected(true));
+      
+      // Process any pending subscriptions
+      if (pendingSubscriptionsRef.current.length > 0) {
+        console.log("📤 Processing pending subscriptions:", pendingSubscriptionsRef.current);
+        const message = {
+          action: "subscribe",
+          quotes: pendingSubscriptionsRef.current,
+          trades: pendingSubscriptionsRef.current,
+          bars: pendingSubscriptionsRef.current
+        };
+        socket.send(JSON.stringify(message));
+        pendingSubscriptionsRef.current = [];
+      }
     };
 
-    socketRef.current.onmessage = (event) => {
-      const data = JSON.parse(event.data);
-      console.log("📨 Received message:", data);
-      dispatch(addMessage(data));
+    socket.onmessage = (event) => {
+      try {
+        const data = JSON.parse(event.data);
+        console.log("📨 Received:", data);
+        dispatch(updateData({ type: data.type, data: data.data }));
+      } catch (error) {
+        console.error("❌ Error processing message:", error);
+      }
     };
 
-    socketRef.current.onerror = (error) => {
-      console.error("❌ WebSocket error:", error);
-    };
-
-    socketRef.current.onclose = () => {
-      dispatch(setConnected(false));
+    socket.onclose = () => {
       console.log("❌ WebSocket disconnected");
+      dispatch(setConnected(false));
     };
 
-    return () => {
-      socketRef.current.close();
+    socket.onerror = (error) => {
+      console.error("❌ WebSocket error:", error);
     };
   }, [url, dispatch]);
 
-  const subscribe = (symbol) => {
-    console.log("🟢 subscribe() function called with symbol:", symbol);
+  useEffect(() => {
+    connect();
+    return () => {
+      if (socketRef.current) {
+        console.log("🔌 Closing WebSocket connection");
+        socketRef.current.close();
+      }
+    };
+  }, [connect]);
 
-    if (!socketRef.current) {
-      console.error("❌ WebSocket instance is null.");
-      return;
+  const subscribe = useCallback((symbol) => {
+    if (!symbol) return;
+
+    console.log("📝 Processing subscription request for:", symbol);
+    
+    if (socketRef.current?.readyState === 1) {
+      const message = {
+        action: "subscribe",
+        quotes: [symbol],
+        trades: [symbol],
+        bars: [symbol]
+      };
+      console.log("📤 Sending subscription:", message);
+      socketRef.current.send(JSON.stringify(message));
+    } else {
+      console.log("⏳ WebSocket not ready, queueing subscription for:", symbol);
+      if (!pendingSubscriptionsRef.current.includes(symbol)) {
+        pendingSubscriptionsRef.current.push(symbol);
+      }
     }
-
-    if (socketRef.current.readyState !== 1) {
-      console.error("❌ WebSocket is not open. Current state:", socketRef.current.readyState);
-      return;
-    }
-
-    const message = JSON.stringify({ action: "subscribe", symbol }); // Send single symbol
-    console.log("📤 Sending subscription message:", message);
-    socketRef.current.send(message);
-    dispatch(updateSubscriptions([...new Set([...subscribedSymbols, symbol])]));
-  };
+  }, []);
 
   return { subscribe };
 };

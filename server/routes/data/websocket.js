@@ -8,7 +8,6 @@ const clients = new Set();
 const clientSubscriptions = new Map(); // Maps clients to their subscribed symbols
 
 const socket = alpaca.data_stream_v2;
-const activeSubscriptions = new Set();
 
 // Handle WebSocket connections
 wss.on("connection", (ws) => {
@@ -16,29 +15,56 @@ wss.on("connection", (ws) => {
   clients.add(ws);
   clientSubscriptions.set(ws, new Set());
 
-  ws.on("message", (message) => {
+  ws.on("message", (data) => {
     try {
-      const data = JSON.parse(message);
-      console.log("Received message from WebSocket client:", data);
-      
-      const { action, symbol } = data;
-      if (action === "subscribe" && symbol) {
-        clientSubscriptions.get(ws).add(symbol);
-        if (!activeSubscriptions.has(symbol)) {
-          activeSubscriptions.add(symbol);
-          console.log(`🟢 Subscribing to ${symbol} on Alpaca`);
-          socket.subscribeForTrades([symbol]);
-          socket.subscribeForQuotes([symbol]);
-          socket.subscribeForBars([symbol]);
+      const message = JSON.parse(data);
+      console.log("Received message from WebSocket client:", message);
+
+      if (message.action === "subscribe") {
+        const symbols = new Set([
+          ...(message.quotes || []),
+          ...(message.trades || []),
+          ...(message.bars || [])
+        ]);
+
+        clientSubscriptions.set(ws, symbols);
+        
+        // Subscribe to Alpaca streams
+        if (message.quotes?.length) {
+          console.log("🟢 Subscribing to quotes for:", message.quotes);
+          socket.subscribeForQuotes(message.quotes);
         }
-      } else if (action === "unsubscribe" && symbol) {
-        clientSubscriptions.get(ws).delete(symbol);
-        if (![...clientSubscriptions.values()].some((set) => set.has(symbol))) {
-          activeSubscriptions.delete(symbol);
-          console.log(`🔴 Unsubscribing from ${symbol} on Alpaca`);
-          socket.unsubscribeFromTrades([symbol]);
-          socket.unsubscribeFromQuotes([symbol]);
-          socket.unsubscribeFromBars([symbol]);
+        if (message.trades?.length) {
+          console.log("🟢 Subscribing to trades for:", message.trades);
+          socket.subscribeForTrades(message.trades);
+        }
+        if (message.bars?.length) {
+          console.log("🟢 Subscribing to bars for:", message.bars);
+          socket.subscribeForBars(message.bars);
+        }
+      } else if (message.action === "unsubscribe") {
+        const symbols = new Set([
+          ...(message.quotes || []),
+          ...(message.trades || []),
+          ...(message.bars || [])
+        ]);
+
+        // Update client subscriptions
+        const currentSubs = clientSubscriptions.get(ws);
+        symbols.forEach(symbol => currentSubs.delete(symbol));
+
+        // Unsubscribe from Alpaca streams if no other clients need them
+        if (message.quotes?.length) {
+          console.log("🔴 Unsubscribing from quotes for:", message.quotes);
+          socket.unsubscribeFromQuotes(message.quotes);
+        }
+        if (message.trades?.length) {
+          console.log("🔴 Unsubscribing from trades for:", message.trades);
+          socket.unsubscribeFromTrades(message.trades);
+        }
+        if (message.bars?.length) {
+          console.log("🔴 Unsubscribing from bars for:", message.bars);
+          socket.unsubscribeFromBars(message.bars);
         }
       }
     } catch (err) {
@@ -64,12 +90,12 @@ socket.onStockTrade((trade) => {
 });
 
 socket.onStockQuote((quote) => {
-  // console.log("Quote:", quote);
+  console.log("Quote:", quote);
   broadcast({ type: "quote", data: quote });
 });
 
 socket.onStockBar((bar) => {
-  // console.log("Bar:", bar);
+  console.log("Bar:", bar);
   broadcast({ type: "bar", data: bar });
 });
 
@@ -84,8 +110,15 @@ const broadcast = (data) => {
   for (const client of clients) {
     if (client.readyState === 1) {
       const symbols = clientSubscriptions.get(client) || new Set();
-      if (symbols.has(data.data.S)) {
-        client.send(JSON.stringify(data));
+      // Handle both quote and bar formats
+      const symbol = data.type === 'quote' ? data.data.Symbol : data.data.S;
+      
+      if (symbols.has(symbol)) {
+        try {
+          client.send(JSON.stringify(data));
+        } catch (error) {
+          console.error('Error sending data to client:', error);
+        }
       }
     }
   }

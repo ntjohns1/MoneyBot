@@ -15,11 +15,10 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { OktaAuth, toRelativeUrl } from '@okta/okta-auth-js';
 import { Security } from '@okta/okta-react';
-import { Container } from "@mui/material";
 import config from './config';
 import HomeNavbar from './HomeNavbar';
 import Routes from './components/Routes';
-import WebSocketTester from './components/WebSocketTester';
+
 
 const oktaAuth = new OktaAuth(config.oidc);
 
@@ -33,7 +32,6 @@ const App = () => {
     <Security oktaAuth={oktaAuth} restoreOriginalUri={restoreOriginalUri}>
         <header className="App-header">
           <HomeNavbar/>
-          <WebSocketTester />
         </header>
 
         <main>

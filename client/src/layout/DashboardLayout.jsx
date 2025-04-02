@@ -35,7 +35,7 @@ const DashboardLayout = () => {
       <Box sx={{ flexGrow: 1, p: 2, height: "95vh" }}>
         <Grid container spacing={2} sx={{ height: "100%" }}>
           {/* Left Sidebar (Account Overview + Stocks to Buy) */}
-          <Grid item xs={12} md={2} spacing={2} sx={{ height: "100%" }}>
+          <Grid item xs={12} md={2} sx={{ height: "100%" }}>
             <Paper sx={{ height: "50%", p: 2 }}>
               <AccountOverview title="Account Overview" />
             </Paper>
@@ -58,7 +58,7 @@ const DashboardLayout = () => {
           </Grid>
 
           {/* Right Sidebar (Recent Orders + Positions) */}
-          <Grid item xs={12} md={2} spacing={2} sx={{ height: "100%" }}>
+          <Grid item xs={12} md={2} sx={{ height: "100%" }}>
             <Paper sx={{ height: "50%", p: 2 }}>
               <Orders title="Recent Orders" />
             </Paper>
