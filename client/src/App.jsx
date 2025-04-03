@@ -15,10 +15,10 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { OktaAuth, toRelativeUrl } from '@okta/okta-auth-js';
 import { Security } from '@okta/okta-react';
-import { Container } from "@mui/material";
 import config from './config';
 import HomeNavbar from './HomeNavbar';
 import Routes from './components/Routes';
+
 
 const oktaAuth = new OktaAuth(config.oidc);
 
@@ -33,11 +33,11 @@ const App = () => {
         <header className="App-header">
           <HomeNavbar/>
         </header>
-      <Container style={{marginTop: '7em'}} className="App">
+
         <main>
           <Routes />
         </main>
-      </Container>
+
     </Security>
   );
 };

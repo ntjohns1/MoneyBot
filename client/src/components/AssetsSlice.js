@@ -4,7 +4,7 @@ import { getAsset, getAssets } from "../service/assets";
 export const fetchAllAssets = createAsyncThunk(
     "assets/fetchAllAssets",
     async () => {
-        const res = getAssets();
+        const res = await getAssets();
         return res;
     }
 );
@@ -12,7 +12,7 @@ export const fetchAllAssets = createAsyncThunk(
 export const fetchOneAsset = createAsyncThunk(
     "assets/fetchOneAsset",
     async ({ symbol }) => {
-        const res = getAsset();
+        const res = await getAsset(symbol);
         return res;
     }
 );

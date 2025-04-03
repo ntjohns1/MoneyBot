@@ -1,10 +1,10 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
-import { getAllPostions } from "../../service/positions";
+import { getAllPositions } from "../../service/positions";
 
 export const fetchAllPositions = createAsyncThunk(
   "positions/getAllPositions",
   async () => {
-    const res = await getAllPostions();
+    const res = await getAllPositions();
     return res;
   }
 );

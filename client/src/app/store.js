@@ -4,6 +4,9 @@ import stocksReducer from "../components/Stocks/StocksSlice";
 import stockHistoryChartReducer from "../components/Stocks/stockHistoryChartSlice";
 import accountReducer from "../components/Portfolio/accountSlice";
 import positionsReducer from "../components/Positions/positionsSlice";
+import ordersReducer from "../components/Orders/ordersSlice";
+import watchlistReducer from "../components/Watchlist/watchlistSlice";
+import webSocketReducer from "../features/webSocketSlice";
 
 export const store = configureStore({
   reducer: {
@@ -12,6 +15,9 @@ export const store = configureStore({
     lineChart: stockHistoryChartReducer,
     account: accountReducer,
     positions: positionsReducer,
+    orders: ordersReducer,
+    watchlist: watchlistReducer,
+    websocket: webSocketReducer,
   },
 });
 

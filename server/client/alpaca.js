@@ -7,6 +7,7 @@ const alpaca = new Alpaca({
   keyId: API_KEY,
   secretKey: API_SECRET,
   paper: true,
+  
 });
 // let options = {
 //   start: "2022-09-01",

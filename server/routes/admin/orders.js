@@ -87,7 +87,7 @@ router.get('/:id', async (req, res) => {
 router.get('/by_client_order_id/:client_order_id', async (req, res) => {
   try {
     const { client_order_id } = req.params;
-    const order = await alpaca.getOrderByClientOrderId(client_order_id);
+    const order = await alpaca.getOrderByClientId(client_order_id);
     res.json(order);
   } catch (error) {
     console.error(error);
@@ -99,7 +99,7 @@ router.get('/by_client_order_id/:client_order_id', async (req, res) => {
 router.patch('/:id', async (req, res) => {
   try {
     const { id } = req.params;
-    const updatedOrder = await alpaca.replaceOrder(id, req.body);  // Assuming body contains fields to be updated
+    const updatedOrder = await alpaca.replaceOrder(id, req.body);
     res.json(updatedOrder);
   } catch (error) {
     console.error(error);

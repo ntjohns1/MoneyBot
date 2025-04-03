@@ -1,6 +1,6 @@
 import api from "./axiosConfig";
 
-export const getAllPostions = async () => {
+export const getAllPositions = async () => {
   try {
     const response = await api.get(`/positions`);
     return response.data;

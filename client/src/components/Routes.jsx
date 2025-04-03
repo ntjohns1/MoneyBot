@@ -15,6 +15,7 @@ import { Routes, Route } from 'react-router-dom';
 import { LoginCallback } from '@okta/okta-react';
 import { RequiredAuth } from './SecureRoute';
 import Home from '../pages/Home';
+import WebSocketTester from './WebSocketTester';
 import Loading from './Loading';
 
 
@@ -22,9 +23,12 @@ const AppRoutes = () => {
   return (
     <Routes>
       {/* <Route path="/" exact={true} element={<Home/>}/> */}
-      <Route path="login/callback" element={<LoginCallback loadingElement={<Loading/>}/>}/>
-      <Route path="/" element={<RequiredAuth/>}>
-        <Route path="" element={<Home/>}/>
+      <Route path="login/callback" element={<LoginCallback loadingElement={<Loading />} />} />
+      <Route path="/" element={<RequiredAuth />}>
+        <Route path="" element={<Home />} />
+      </Route>
+      <Route path="/test" element={<RequiredAuth />}>
+        <Route path="" element={<WebSocketTester />} />
       </Route>
     </Routes>
   );

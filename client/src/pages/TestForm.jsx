@@ -9,7 +9,7 @@ import MenuItem from "@mui/material/MenuItem";
 import Button from "@mui/material/Button";
 import Typography from "@mui/material/Typography";
 import Grid from '@mui/material/Grid2';
-import { getAssets, getBarsForSymbol } from "../service/alpaca.js";
+import { getBarsForSymbol } from "../service/stocks.js";
 import { setAccessToken } from "../service/axiosConfig.js";
 import { useOktaAuth } from "@okta/okta-react";
 
