@@ -1,26 +1,31 @@
 import React, { useState } from 'react';
-import { useSelector, useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
+import { addSymbol, createWatchlist } from './watchlistSlice';
 import {
-  createNewWatchlist,
-  addSymbol,
-  fetchWatchlistById,
-} from './watchlistSlice';
-import Box from '@mui/material/Box';
-import TextField from '@mui/material/TextField';
-import Button from '@mui/material/Button';
-import IconButton from '@mui/material/IconButton';
+  Box,
+  TextField,
+  Button,
+  IconButton,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  Snackbar,
+  Alert,
+} from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
-import Dialog from '@mui/material/Dialog';
-import DialogActions from '@mui/material/DialogActions';
-import DialogContent from '@mui/material/DialogContent';
-import DialogTitle from '@mui/material/DialogTitle';
-import Snackbar from '@mui/material/Snackbar';
-import Alert from '@mui/material/Alert';
 import { styled } from '@mui/material/styles';
+
+const StyledBox = styled(Box)(({ theme }) => ({
+  padding: theme.spacing(2),
+  display: 'flex',
+  gap: theme.spacing(1),
+  backgroundColor: '#1a1a1a',
+  borderBottom: `1px solid #333333`,
+}));
 
 const StyledTextField = styled(TextField)(({ theme }) => ({
   '& .MuiOutlinedInput-root': {
-    color: '#ffffff',
     '& fieldset': {
       borderColor: '#333333',
     },
@@ -30,6 +35,9 @@ const StyledTextField = styled(TextField)(({ theme }) => ({
     '&.Mui-focused fieldset': {
       borderColor: '#4caf50',
     },
+  },
+  '& .MuiInputBase-input': {
+    color: '#ffffff',
   },
   '& .MuiInputLabel-root': {
     color: '#999999',
@@ -51,7 +59,7 @@ const WatchlistManager = () => {
   const dispatch = useDispatch();
   const { selectedWatchlist } = useSelector((state) => state.watchlist);
   const [symbol, setSymbol] = useState('');
-  const [openDialog, setOpenDialog] = useState(false);
+  const [showCreateDialog, setShowCreateDialog] = useState(false);
   const [newWatchlistName, setNewWatchlistName] = useState('');
   const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
 
@@ -61,9 +69,7 @@ const WatchlistManager = () => {
 
     try {
       const trimmedSymbol = symbol.trim().toUpperCase();
-      await dispatch(addSymbol({ id: selectedWatchlist.id, symbol: trimmedSymbol })).unwrap();
-      // Refresh the watchlist after adding symbol
-      dispatch(fetchWatchlistById(selectedWatchlist.id));
+      await dispatch(addSymbol({ id: selectedWatchlist.id, symbol: trimmedSymbol }));
       setSymbol('');
       setSnackbar({
         open: true,
@@ -80,14 +86,12 @@ const WatchlistManager = () => {
     }
   };
 
-  const handleCreateWatchlist = async (e) => {
-    e.preventDefault();
-    if (!newWatchlistName) return;
-
+  const handleCreateWatchlist = async () => {
+    if (!newWatchlistName.trim()) return;
     try {
-      await dispatch(createNewWatchlist({ name: newWatchlistName, symbols: [] })).unwrap();
+      await dispatch(createWatchlist(newWatchlistName.trim()));
       setNewWatchlistName('');
-      setOpenDialog(false);
+      setShowCreateDialog(false);
       setSnackbar({
         open: true,
         message: 'Watchlist created successfully',
@@ -109,73 +113,47 @@ const WatchlistManager = () => {
 
   return (
     <>
-      <Box
-        sx={{
-          display: 'flex',
-          gap: 1,
-          p: 2,
-          backgroundColor: '#1a1a1a',
-          borderBottom: 1,
-          borderColor: '#333333',
-        }}
-      >
-        <Box component="form" onSubmit={handleAddSymbol} sx={{ display: 'flex', gap: 1, flex: 1 }}>
-          <StyledTextField
-            size="small"
-            label="Add Symbol"
-            value={symbol}
-            onChange={(e) => setSymbol(e.target.value)}
-            disabled={!selectedWatchlist}
-            sx={{ flex: 1 }}
-          />
-          <StyledButton
-            type="submit"
-            variant="contained"
-            disabled={!selectedWatchlist || !symbol}
-            startIcon={<AddIcon />}
-          >
-            Add
-          </StyledButton>
-        </Box>
+      <StyledBox component="form" onSubmit={handleAddSymbol}>
+        <StyledTextField
+          size="small"
+          placeholder="Add symbol..."
+          value={symbol}
+          onChange={(e) => setSymbol(e.target.value)}
+          disabled={!selectedWatchlist}
+        />
+        <IconButton
+          type="submit"
+          disabled={!selectedWatchlist || !symbol}
+          color="primary"
+          size="small"
+        >
+          <AddIcon />
+        </IconButton>
         <StyledButton
           variant="contained"
-          onClick={() => setOpenDialog(true)}
-          startIcon={<AddIcon />}
+          size="small"
+          onClick={() => setShowCreateDialog(true)}
+          sx={{ ml: 'auto' }}
         >
           New Watchlist
         </StyledButton>
-      </Box>
+      </StyledBox>
 
-      <Dialog
-        open={openDialog}
-        onClose={() => setOpenDialog(false)}
-        PaperProps={{
-          sx: {
-            backgroundColor: '#1a1a1a',
-            color: '#ffffff',
-          },
-        }}
-      >
+      <Dialog open={showCreateDialog} onClose={() => setShowCreateDialog(false)}>
         <DialogTitle>Create New Watchlist</DialogTitle>
         <DialogContent>
-          <Box component="form" onSubmit={handleCreateWatchlist} sx={{ mt: 2 }}>
-            <StyledTextField
-              autoFocus
-              label="Watchlist Name"
-              fullWidth
-              value={newWatchlistName}
-              onChange={(e) => setNewWatchlistName(e.target.value)}
-            />
-          </Box>
+          <StyledTextField
+            autoFocus
+            margin="dense"
+            label="Watchlist Name"
+            fullWidth
+            value={newWatchlistName}
+            onChange={(e) => setNewWatchlistName(e.target.value)}
+          />
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setOpenDialog(false)} sx={{ color: '#999999' }}>
-            Cancel
-          </Button>
-          <StyledButton
-            onClick={handleCreateWatchlist}
-            disabled={!newWatchlistName}
-          >
+          <Button onClick={() => setShowCreateDialog(false)}>Cancel</Button>
+          <StyledButton onClick={handleCreateWatchlist} variant="contained" color="primary">
             Create
           </StyledButton>
         </DialogActions>

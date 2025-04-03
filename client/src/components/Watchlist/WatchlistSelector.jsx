@@ -1,6 +1,6 @@
 import React from 'react';
 import { useSelector, useDispatch } from 'react-redux';
-import { setSelectedWatchlist, removeWatchlist } from './watchlistSlice';
+import { setSelectedWatchlist, deleteWatchlist, fetchWatchlistById } from './watchlistSlice';
 import Box from '@mui/material/Box';
 import Tabs from '@mui/material/Tabs';
 import Tab from '@mui/material/Tab';
@@ -27,19 +27,28 @@ const StyledTab = styled(Tab)(({ theme }) => ({
 
 const WatchlistSelector = () => {
   const dispatch = useDispatch();
-  const { watchlists, selectedWatchlist } = useSelector((state) => state.watchlist);
+  const watchlistState = useSelector((state) => state.watchlist);
+  const watchlists = Array.isArray(watchlistState?.watchlists) ? watchlistState.watchlists : [];
+  const selectedWatchlist = watchlistState?.selectedWatchlist;
 
-  const handleChange = (event, newValue) => {
+  const handleChange = async (event, newValue) => {
     const selected = watchlists.find(w => w.id === newValue);
     if (selected) {
-      dispatch(setSelectedWatchlist(selected));
+      // First fetch the full watchlist data
+      await dispatch(fetchWatchlistById(selected.id));
+      // Then set it as selected (this will now have the symbols)
+      
+      const updatedWatchlist = watchlistState.watchlists.find(w => w.id === selected.id);
+      if (updatedWatchlist) {
+        dispatch(setSelectedWatchlist(updatedWatchlist));
+      }
     }
   };
 
   const handleDelete = async (event, watchlistId) => {
     event.stopPropagation();
     if (window.confirm('Are you sure you want to delete this watchlist?')) {
-      await dispatch(removeWatchlist(watchlistId));
+      await dispatch(deleteWatchlist(watchlistId));
     }
   };
 
@@ -60,6 +69,15 @@ const WatchlistSelector = () => {
       />
     </Box>
   );
+
+  // Only render tabs if we have valid watchlists array
+  if (!watchlists.length) {
+    return (
+      <Box sx={{ borderBottom: 1, borderColor: '#333333', p: 2 }}>
+        No watchlists available
+      </Box>
+    );
+  }
 
   return (
     <Box sx={{ borderBottom: 1, borderColor: '#333333' }}>

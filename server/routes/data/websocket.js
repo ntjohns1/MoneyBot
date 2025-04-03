@@ -90,12 +90,12 @@ socket.onStockTrade((trade) => {
 });
 
 socket.onStockQuote((quote) => {
-  console.log("Quote:", quote);
+  // console.log("Quote:", quote);
   broadcast({ type: "quote", data: quote });
 });
 
 socket.onStockBar((bar) => {
-  console.log("Bar:", bar);
+  // console.log("Bar:", bar);
   broadcast({ type: "bar", data: bar });
 });
 

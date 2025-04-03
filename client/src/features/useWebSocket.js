@@ -35,7 +35,7 @@ const useWebSocket = (url) => {
     socket.onmessage = (event) => {
       try {
         const data = JSON.parse(event.data);
-        console.log("📨 Received:", data);
+        // console.log("📨 Received:", data);
         dispatch(updateData({ type: data.type, data: data.data }));
       } catch (error) {
         console.error("❌ Error processing message:", error);

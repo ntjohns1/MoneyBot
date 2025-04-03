@@ -2,88 +2,93 @@ import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import {
   getAllWatchlists,
   getWatchlistById,
-  createWatchlist,
+  createWatchlist as createWatchlistApi,
   addSymbolToWatchlist,
-  updateWatchlist,
-  deleteWatchlist,
   removeSymbolFromWatchlist,
+  deleteWatchlist as deleteWatchlistApi,
 } from "../../service/watchlist";
 
-// Async thunks for watchlist operations
+// Async thunks
 export const fetchAllWatchlists = createAsyncThunk(
-  "watchlist/fetchAllWatchlists",
+  "watchlist/fetchAll",
   async () => {
-    const res = await getAllWatchlists();
-    console.log("fetchAllWatchlists", res);
-    return res;
-  }
-);
-
-export const fetchWatchlistById = createAsyncThunk(
-  "watchlist/fetchWatchlistById",
-  async (id) => {
-    const res = await getWatchlistById(id);
-    console.log("fetchWatchlistById", res);
-    return res;
-  }
-);
-
-export const createNewWatchlist = createAsyncThunk(
-  "watchlist/createWatchlist",
-  async ({ name, symbols }) => {
-    const res = await createWatchlist(name, symbols);
-    return res;
-  }
-);
-
-export const addSymbol = createAsyncThunk(
-  "watchlist/addSymbol",
-  async ({ id, symbol }, { rejectWithValue }) => {
     try {
-      const res = await addSymbolToWatchlist(id, symbol);
-      return res;
+      return await getAllWatchlists();
     } catch (error) {
-      // Handle server error responses
-      if (error.response?.data?.error) {
-        return rejectWithValue(error.response.data.error);
-      }
       throw error;
     }
   }
 );
 
-export const updateWatchlistSymbols = createAsyncThunk(
-  "watchlist/updateSymbols",
-  async ({ id, symbols }) => {
-    const res = await updateWatchlist(id, symbols);
-    return res;
+export const fetchWatchlistById = createAsyncThunk(
+  "watchlist/fetchById",
+  async (id) => {
+    try {
+      const res = await getWatchlistById(id);
+      console.log(res);
+      return res;
+    } catch (error) {
+      throw error;
+    }
   }
 );
 
-export const removeWatchlist = createAsyncThunk(
-  "watchlist/deleteWatchlist",
-  async (id) => {
-    await deleteWatchlist(id);
-    return id;
+export const createWatchlist = createAsyncThunk(
+  "watchlist/create",
+  async ({ name, symbols = [] }) => {
+    try {
+      return await createWatchlistApi(name, symbols);
+    } catch (error) {
+      throw error;
+    }
+  }
+);
+
+export const addSymbol = createAsyncThunk(
+  "watchlist/addSymbol",
+  async ({ id, symbol }) => {
+    try {
+      return await addSymbolToWatchlist(id, symbol);
+    } catch (error) {
+      throw error;
+    }
   }
 );
 
 export const removeSymbol = createAsyncThunk(
   "watchlist/removeSymbol",
   async ({ id, symbol }) => {
-    const res = await removeSymbolFromWatchlist(id, symbol);
-    return res;
+    try {
+      const updatedWatchlist = await removeSymbolFromWatchlist(id, symbol);
+      return { id, symbol, updatedWatchlist };
+    } catch (error) {
+      throw error;
+    }
   }
 );
 
+export const deleteWatchlist = createAsyncThunk(
+  "watchlist/delete",
+  async (id) => {
+    try {
+      await deleteWatchlistApi(id);
+      return id;
+    } catch (error) {
+      throw error;
+    }
+  }
+);
+
+const initialState = {
+  watchlists: [],
+  selectedWatchlist: null,
+  loading: false,
+  error: null,
+};
+
 const watchlistSlice = createSlice({
   name: "watchlist",
-  initialState: {
-    watchlists: [],
-    selectedWatchlist: null,
-    loading: false,
-    error: null,
-  },
+  initialState,
   reducers: {
     setSelectedWatchlist: (state, action) => {
       state.selectedWatchlist = action.payload;
@@ -94,133 +99,94 @@ const watchlistSlice = createSlice({
   },
   extraReducers: (builder) => {
     builder
-      // Fetch all watchlists
+      // Fetch All Watchlists
       .addCase(fetchAllWatchlists.pending, (state) => {
         state.loading = true;
         state.error = null;
       })
       .addCase(fetchAllWatchlists.fulfilled, (state, action) => {
         state.loading = false;
-        state.watchlists = action.payload;
+        state.watchlists = Array.isArray(action.payload) ? action.payload : [];
+        // Select first watchlist if none selected
+        if (!state.selectedWatchlist && action.payload?.length > 0) {
+          state.selectedWatchlist = action.payload[0];
+        }
       })
       .addCase(fetchAllWatchlists.rejected, (state, action) => {
         state.loading = false;
         state.error = action.error.message;
+        state.watchlists = []; // Reset to empty array on error
       })
-      // Fetch single watchlist
+
+      // Fetch Single Watchlist
       .addCase(fetchWatchlistById.pending, (state) => {
         state.loading = true;
         state.error = null;
       })
       .addCase(fetchWatchlistById.fulfilled, (state, action) => {
         state.loading = false;
-        // Update both the watchlist in the list and the selected watchlist
-        const index = state.watchlists.findIndex(w => w.id === action.payload.id);
-        if (index !== -1) {
-          state.watchlists[index] = {
-            ...state.watchlists[index],
-            ...action.payload
-          };
-        }
-        if (state.selectedWatchlist?.id === action.payload.id) {
-          state.selectedWatchlist = {
-            ...state.selectedWatchlist,
-            ...action.payload
-          };
+        if (action.payload && action.payload.id) {
+          // Update both the watchlists array and selectedWatchlist
+          const index = state.watchlists.findIndex(w => w.id === action.payload.id);
+          if (index !== -1) {
+            state.watchlists[index] = action.payload;
+          }
+          if (state.selectedWatchlist?.id === action.payload.id) {
+            state.selectedWatchlist = action.payload;
+          }
         }
       })
       .addCase(fetchWatchlistById.rejected, (state, action) => {
         state.loading = false;
         state.error = action.error.message;
       })
-      // Create watchlist
-      .addCase(createNewWatchlist.pending, (state) => {
-        state.loading = true;
-        state.error = null;
+
+      // Create Watchlist
+      .addCase(createWatchlist.fulfilled, (state, action) => {
+        if (action.payload && action.payload.id) {
+          state.watchlists.push(action.payload);
+          state.selectedWatchlist = action.payload;
+        }
       })
-      .addCase(createNewWatchlist.fulfilled, (state, action) => {
-        state.loading = false;
-        state.watchlists.push(action.payload);
-      })
-      .addCase(createNewWatchlist.rejected, (state, action) => {
-        state.loading = false;
-        state.error = action.error.message;
-      })
-      // Add symbol to watchlist
-      .addCase(addSymbol.pending, (state) => {
-        state.loading = true;
-        state.error = null;
-      })
+
+      // Add Symbol
       .addCase(addSymbol.fulfilled, (state, action) => {
-        state.loading = false;
-        const index = state.watchlists.findIndex((w) => w.id === action.payload.id);
-        if (index !== -1) {
-          state.watchlists[index] = action.payload;
-        }
-        if (state.selectedWatchlist?.id === action.payload.id) {
-          state.selectedWatchlist = action.payload;
-        }
-      })
-      .addCase(addSymbol.rejected, (state, action) => {
-        state.loading = false;
-        state.error = action.error.message;
-      })
-      // Update watchlist
-      .addCase(updateWatchlistSymbols.pending, (state) => {
-        state.loading = true;
-        state.error = null;
-      })
-      .addCase(updateWatchlistSymbols.fulfilled, (state, action) => {
-        state.loading = false;
-        const index = state.watchlists.findIndex((w) => w.id === action.payload.id);
-        if (index !== -1) {
-          state.watchlists[index] = action.payload;
-        }
-        if (state.selectedWatchlist?.id === action.payload.id) {
-          state.selectedWatchlist = action.payload;
+        if (action.payload && action.payload.id) {
+          const index = state.watchlists.findIndex(w => w.id === action.payload.id);
+          if (index !== -1) {
+            state.watchlists[index] = { ...state.watchlists[index], ...action.payload };
+            if (state.selectedWatchlist?.id === action.payload.id) {
+              state.selectedWatchlist = { ...state.selectedWatchlist, ...action.payload };
+            }
+          }
         }
       })
-      .addCase(updateWatchlistSymbols.rejected, (state, action) => {
-        state.loading = false;
-        state.error = action.error.message;
-      })
-      // Delete watchlist
-      .addCase(removeWatchlist.pending, (state) => {
-        state.loading = true;
-        state.error = null;
-      })
-      .addCase(removeWatchlist.fulfilled, (state, action) => {
-        state.loading = false;
-        state.watchlists = state.watchlists.filter((w) => w.id !== action.payload);
-        if (state.selectedWatchlist?.id === action.payload) {
-          state.selectedWatchlist = null;
-        }
-      })
-      .addCase(removeWatchlist.rejected, (state, action) => {
-        state.loading = false;
-        state.error = action.error.message;
-      })
-      // Remove symbol from watchlist
-      .addCase(removeSymbol.pending, (state) => {
-        state.loading = true;
-        state.error = null;
-      })
+
+      // Remove Symbol
       .addCase(removeSymbol.fulfilled, (state, action) => {
-        state.loading = false;
-        const index = state.watchlists.findIndex((w) => w.id === action.payload.id);
-        if (index !== -1) {
-          state.watchlists[index] = action.payload;
-        }
-        if (state.selectedWatchlist?.id === action.payload.id) {
-          state.selectedWatchlist = action.payload;
+        if (action.payload.updatedWatchlist && action.payload.id) {
+          const index = state.watchlists.findIndex(w => w.id === action.payload.id);
+          if (index !== -1) {
+            state.watchlists[index] = { ...state.watchlists[index], ...action.payload.updatedWatchlist };
+            if (state.selectedWatchlist?.id === action.payload.id) {
+              state.selectedWatchlist = { ...state.selectedWatchlist, ...action.payload.updatedWatchlist };
+            }
+          }
         }
       })
-      .addCase(removeSymbol.rejected, (state, action) => {
-        state.loading = false;
-        state.error = action.error.message;
+
+      // Delete Watchlist
+      .addCase(deleteWatchlist.fulfilled, (state, action) => {
+        if (action.payload) {
+          state.watchlists = state.watchlists.filter(w => w.id !== action.payload);
+          if (state.selectedWatchlist?.id === action.payload) {
+            state.selectedWatchlist = state.watchlists[0] || null;
+          }
+        }
       });
   },
 });
 
 export const { setSelectedWatchlist, clearError } = watchlistSlice.actions;
+
 export default watchlistSlice.reducer;

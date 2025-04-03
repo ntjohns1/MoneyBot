@@ -1,178 +1,120 @@
-import React, { useEffect, useMemo, useCallback } from "react";
-import { useSelector, useDispatch } from "react-redux";
-import { useOktaAuth } from "@okta/okta-react";
-import { setAccessToken } from "../../service/axiosConfig";
-import { fetchAllWatchlists, fetchWatchlistById, setSelectedWatchlist, removeSymbol } from "./watchlistSlice";
-import useWebSocket from "../../features/useWebSocket";
+import React, { useEffect } from 'react';
+import { useSelector, useDispatch } from 'react-redux';
 import {
   Table,
   TableBody,
   TableCell,
-  tableCellClasses,
   TableContainer,
   TableHead,
   TableRow,
   Paper,
-  IconButton,
   CircularProgress,
-  Alert,
-} from "@mui/material";
-import { styled } from "@mui/material/styles";
-import DeleteIcon from "@mui/icons-material/Delete";
+} from '@mui/material';
+import { styled } from '@mui/material/styles';
 
-const StyledTableCell = styled(TableCell)(({ theme }) => ({
-  [`&.${tableCellClasses.head}`]: {
-    backgroundColor: theme.palette.common.black,
-    color: theme.palette.common.white,
-  },
-  [`&.${tableCellClasses.body}`]: {
-    fontSize: 14,
-  },
+const StyledTableContainer = styled(TableContainer)(({ theme }) => ({
+  maxHeight: 'calc(100vh - 200px)',
+  backgroundColor: '#1a1a1a',
 }));
 
-const StyledTableRow = styled(TableRow)(({ theme }) => ({
-  "&:nth-of-type(odd)": {
-    backgroundColor: theme.palette.action.hover,
+const StyledTable = styled(Table)({
+  '& .MuiTableCell-root': {
+    color: '#ffffff',
+    borderColor: '#333333',
   },
-  "&:last-child td, &:last-child th": {
-    border: 0,
-  },
-}));
+});
 
-const formatPrice = (price) => {
-  return price ? `$${price.toFixed(2)}` : "-";
+const StyledTableHeaderCell = styled(TableCell)({
+  backgroundColor: '#262626',
+  fontWeight: 'bold',
+  position: 'sticky',
+  top: 0,
+  zIndex: 1,
+});
+
+const formatNumber = (value) => {
+  if (typeof value !== 'number') return '--';
+  return value.toLocaleString('en-US', {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  });
 };
 
-const formatVolume = (volume) => {
-  if (!volume) return "-";
-  return volume.toLocaleString();
+const formatChange = (value) => {
+  if (typeof value !== 'number') return '--';
+  const formatted = formatNumber(Math.abs(value));
+  const color = value > 0 ? '#4caf50' : value < 0 ? '#f44336' : 'inherit';
+  return <span style={{ color }}>{value > 0 ? '+' : '-'}{formatted}%</span>;
 };
 
 const WatchlistTable = () => {
-  const dispatch = useDispatch();
-  const { authState, oktaAuth } = useOktaAuth();
-  const { watchlists, selectedWatchlist, loading, error } = useSelector((state) => state.watchlist);
-  const { data } = useSelector((state) => state.websocket);
-  const { subscribe } = useWebSocket("ws://localhost:8080");
+  const { selectedWatchlist, loading } = useSelector((state) => state.watchlist);
 
-  const fetchWatchlistDetails = useCallback((id) => {
-    dispatch(fetchWatchlistById(id));
-  }, [dispatch]);
-
-  // Debug logging for WebSocket data
-  useEffect(() => {
-    if (selectedWatchlist?.assets) {
-      selectedWatchlist.assets.forEach(asset => {
-        console.log(`[${asset.symbol}] WebSocket Data:`, data[asset.symbol] || 'No data');
-      });
-    }
-  }, [selectedWatchlist?.assets, data]);
-
-  // Subscribe to symbols
-  useEffect(() => {
-    if (selectedWatchlist?.assets) {
-      selectedWatchlist.assets.forEach(asset => {
-        subscribe(asset.symbol);
-      });
-    }
-  }, [selectedWatchlist?.assets, subscribe]);
-
-  // Process data for display
-  const processedData = useMemo(() => {
-    if (!selectedWatchlist?.assets) return [];
-    
-    return selectedWatchlist.assets.map(asset => {
-      const symbolData = data[asset.symbol] || {};
-      
-      return {
-        ...asset,
-        price: symbolData.price || 0,
-        volume: symbolData.bar?.volume || 0
-      };
-    });
-  }, [selectedWatchlist?.assets, data]);
-
-  // Fetch watchlists on mount and when auth changes
-  useEffect(() => {
-    if (authState?.isAuthenticated) {
-      const getAccessToken = async () => {
-        const token = await oktaAuth.getAccessToken();
-        setAccessToken(token);
-        dispatch(fetchAllWatchlists());
-      };
-      getAccessToken();
-    }
-  }, [authState, oktaAuth, dispatch]);
-
-  // Select first watchlist by default
-  useEffect(() => {
-    if (watchlists?.length > 0 && !selectedWatchlist) {
-      dispatch(setSelectedWatchlist(watchlists[0]));
-      fetchWatchlistDetails(watchlists[0].id);
-    }
-  }, [watchlists, selectedWatchlist, dispatch, fetchWatchlistDetails]);
-
-  const handleRemoveSymbol = async (symbol) => {
-    if (selectedWatchlist) {
-      try {
-        await dispatch(removeSymbol({ id: selectedWatchlist.id, symbol })).unwrap();
-        // Refresh the watchlist after removing symbol
-        dispatch(fetchWatchlistById(selectedWatchlist.id));
-      } catch (error) {
-        console.error('Failed to remove symbol:', error);
-      }
-    }
-  };
+  // Dummy data generator
+  const getDummyData = (symbol) => ({
+    price: Math.random() * 1000,
+    change: (Math.random() * 10) - 5, // -5 to +5
+    volume: Math.floor(Math.random() * 1000000),
+    bid: Math.random() * 1000,
+    ask: Math.random() * 1000,
+    high: Math.random() * 1000,
+    low: Math.random() * 1000,
+  });
 
   if (loading) {
-    return <CircularProgress />;
+    return (
+      <StyledTableContainer component={Paper}>
+        <div style={{ padding: 16, color: '#ffffff', textAlign: 'center' }}>
+          <CircularProgress />
+        </div>
+      </StyledTableContainer>
+    );
   }
 
-  if (error) {
-    return <Alert severity="error">{error}</Alert>;
-  }
-
-  if (!selectedWatchlist) {
-    return <Alert severity="info">No watchlist selected</Alert>;
+  if (!selectedWatchlist?.assets?.length) {
+    return (
+      <StyledTableContainer component={Paper}>
+        <div style={{ padding: 16, color: '#ffffff', textAlign: 'center' }}>
+          {selectedWatchlist ? 'No symbols in this watchlist' : 'Please select a watchlist'}
+        </div>
+      </StyledTableContainer>
+    );
   }
 
   return (
-    <TableContainer component={Paper}>
-      <Table sx={{ minWidth: 700 }} aria-label="customized table">
+    <StyledTableContainer component={Paper}>
+      <StyledTable stickyHeader>
         <TableHead>
           <TableRow>
-            <StyledTableCell>Symbol</StyledTableCell>
-            <StyledTableCell align="right">Price</StyledTableCell>
-            <StyledTableCell align="right">Volume</StyledTableCell>
-            <StyledTableCell align="right">Actions</StyledTableCell>
+            <StyledTableHeaderCell>Symbol</StyledTableHeaderCell>
+            <StyledTableHeaderCell align="right">Price</StyledTableHeaderCell>
+            <StyledTableHeaderCell align="right">Change</StyledTableHeaderCell>
+            <StyledTableHeaderCell align="right">Volume</StyledTableHeaderCell>
+            <StyledTableHeaderCell align="right">Bid</StyledTableHeaderCell>
+            <StyledTableHeaderCell align="right">Ask</StyledTableHeaderCell>
+            <StyledTableHeaderCell align="right">High</StyledTableHeaderCell>
+            <StyledTableHeaderCell align="right">Low</StyledTableHeaderCell>
           </TableRow>
         </TableHead>
         <TableBody>
-          {processedData.map((row) => (
-            <StyledTableRow key={row.symbol}>
-              <StyledTableCell component="th" scope="row">
-                {row.symbol}
-              </StyledTableCell>
-              <StyledTableCell align="right">
-                {formatPrice(row.price)}
-              </StyledTableCell>
-              <StyledTableCell align="right">
-                {formatVolume(row.volume)}
-              </StyledTableCell>
-              <StyledTableCell align="right">
-                <IconButton
-                  aria-label="delete"
-                  size="small"
-                  onClick={() => handleRemoveSymbol(row.symbol)}
-                >
-                  <DeleteIcon />
-                </IconButton>
-              </StyledTableCell>
-            </StyledTableRow>
-          ))}
+          {selectedWatchlist.assets.map((asset) => {
+            const data = getDummyData(asset.symbol);
+            return (
+              <TableRow key={asset.id} hover>
+                <TableCell>{asset.symbol}</TableCell>
+                <TableCell align="right">{formatNumber(data.price)}</TableCell>
+                <TableCell align="right">{formatChange(data.change)}</TableCell>
+                <TableCell align="right">{formatNumber(data.volume)}</TableCell>
+                <TableCell align="right">{formatNumber(data.bid)}</TableCell>
+                <TableCell align="right">{formatNumber(data.ask)}</TableCell>
+                <TableCell align="right">{formatNumber(data.high)}</TableCell>
+                <TableCell align="right">{formatNumber(data.low)}</TableCell>
+              </TableRow>
+            );
+          })}
         </TableBody>
-      </Table>
-    </TableContainer>
+      </StyledTable>
+    </StyledTableContainer>
   );
 };
 
